@@ -7,10 +7,8 @@ import (
 )
 
 type Configuration struct {
+	LISTEN_ADDR             string `mapstructure:"LISTEN_ADDR"`
 	POSTGRES_CONNECTION_URI string `mapstructure:"POSTGRES_CONNECTION_URI"`
-	REDIS_ADDR              string `mapstructure:"REDIS_ADDR"`
-
-	LISTEN_ADDR string `mapstructure:"LISTEN_ADDR"`
 }
 
 func initializeDevelopmentConfig() error {

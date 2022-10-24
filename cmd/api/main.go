@@ -9,11 +9,13 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
+
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/config"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/container"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/server"
-
-	"go.uber.org/zap"
 )
 
 func main() {
@@ -49,7 +51,13 @@ func run(log *zap.Logger) error {
 		return err
 	}
 
-	container := container.New(log, config)
+	db, err := sqlx.Connect("postgres", config.POSTGRES_CONNECTION_URI)
+	if err != nil {
+		return err
+	}
+
+	querier := querier.New(db)
+	container := container.New(log, config, querier)
 
 	l, err := net.Listen("tcp", config.LISTEN_ADDR)
 	if err != nil {
