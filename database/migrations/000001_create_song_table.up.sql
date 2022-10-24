@@ -4,5 +4,5 @@ create table "song" (
   "song_name_en" varchar(255),
   "artist_name_jp" varchar(255) not null,
   "artist_name_en" varchar(255),
-  "image_url" text not null
+  "cover_image_url" text not null
 );

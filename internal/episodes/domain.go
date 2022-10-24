@@ -20,7 +20,7 @@ type Song struct {
 	SongEnName   string
 	ArtistJpName string
 	ArtistEnName string
-	ImageSrc     string
+	ImageURL     string
 }
 
 type Vote struct {

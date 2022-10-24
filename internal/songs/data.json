@@ -1,0 +1,99 @@
+[
+  {
+    "id": 1,
+    "songNameJp": "残機",
+    "songNameEn": "Zanki",
+    "artistNameJp": "ずっと真夜中でいいのに",
+    "artistNameEn": "ZUTOMAYO",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/1.jpeg"
+  },
+  {
+    "id": 2,
+    "songNameJp": "CHAINSAW BLOOD",
+    "songNameEn": "",
+    "artistNameJp": "バウンディ",
+    "artistNameEn": "Vaundy",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/2.jpeg"
+  },
+  {
+    "id": 3,
+    "songNameJp": "刃渡り2億センチ",
+    "songNameEn": "Hawatari 2-Oku Centi",
+    "artistNameJp": "マキシマム ザ ホルモン",
+    "artistNameEn": "Maximum The Hormone",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/3.jpeg"
+  },
+  {
+    "id": 4,
+    "songNameJp": "ちゅ、多様性",
+    "songNameEn": "Chu, Tayousei",
+    "artistNameJp": "あの",
+    "artistNameEn": "ano",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/4.jpeg"
+  },
+  {
+    "id": 5,
+    "songNameJp": "Deep down",
+    "songNameEn": "",
+    "artistNameJp": "エメ",
+    "artistNameEn": "Aimer",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/5.jpeg"
+  },
+  {
+    "id": 6,
+    "songNameJp": "大脳的なランデブー",
+    "songNameEn": "Dainоteki na Rendezvous",
+    "artistNameJp": "Kanaria",
+    "artistNameEn": "カナリア",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/6.jpeg"
+  },
+  {
+    "id": 7,
+    "songNameJp": "インザバックルーム",
+    "songNameEn": "In the Back Room",
+    "artistNameJp": "手動",
+    "artistNameEn": "syudou",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/7.jpeg"
+  },
+  {
+    "id": 8,
+    "songNameJp": "ファイトソング",
+    "songNameEn": "Fight Song",
+    "artistNameJp": "いぶ",
+    "artistNameEn": "Eve",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/8.jpeg"
+  },
+  {
+    "id": 9,
+    "songNameJp": "バイオレンス",
+    "songNameEn": "Violence",
+    "artistNameJp": "女王蜂",
+    "artistNameEn": "Queen Bee",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/9.jpeg"
+  },
+  {
+    "id": 10,
+    "songNameJp": "first death",
+    "songNameEn": "",
+    "artistNameJp": "TK from 凛として時雨",
+    "artistNameEn": "TK from ling tosite sigure",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/10.jpeg"
+  },
+  {
+    "id": 11,
+    "songNameJp": "錠剤",
+    "songNameEn": "Jоzai",
+    "artistNameJp": "TOOBOE スタッフ",
+    "artistNameEn": "",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/11.jpeg"
+  },
+  {
+    "id": 12,
+    "songNameJp": "DOGLAND",
+    "songNameEn": "",
+    "artistNameJp": "PEOPLE 1",
+    "artistNameEn": "ピープルワン",
+    "coverImageUrl": "https://raw.githubusercontent.com/stevenhansel/csm-ending-prediction-be/main/data/images/12.jpeg"
+  }
+]
+

@@ -11,11 +11,14 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
+    _ "github.com/lib/pq"
 
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/config"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/container"
-	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/errtrace"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier/database"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/server"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/songs"
 )
 
 func main() {
@@ -43,25 +46,33 @@ func run(log *zap.Logger) error {
 
 	log, err := zap.NewProduction()
 	if err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
 
 	config, err := config.New(environment)
 	if err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
 
 	db, err := sqlx.Connect("postgres", config.POSTGRES_CONNECTION_URI)
 	if err != nil {
-		return err
+    fmt.Println("caught herre")
+		return errtrace.Wrap(err)
 	}
 
-	querier := querier.New(db)
-	container := container.New(log, config, querier)
+	dbQuerier := database.New(db)
+
+  songService := songs.NewService(dbQuerier)
+
+  if err := songService.InitializeSongs(ctx); err != nil {
+		return errtrace.Wrap(err)
+  }
+
+	container := container.New(log, config, songService)
 
 	l, err := net.Listen("tcp", config.LISTEN_ADDR)
 	if err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
 
 	log.Info(fmt.Sprintf("Server listening on http://%v", l.Addr()))
