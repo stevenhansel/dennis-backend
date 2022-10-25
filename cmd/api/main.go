@@ -56,7 +56,6 @@ func run(log *zap.Logger) error {
 
 	db, err := sqlx.Connect("postgres", config.POSTGRES_CONNECTION_URI)
 	if err != nil {
-    fmt.Println("caught herre")
 		return errtrace.Wrap(err)
 	}
 
