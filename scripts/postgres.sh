@@ -8,6 +8,6 @@ docker run \
   --rm \
   --detach \
   -e POSTGRES_USER=denji \
-  -e POSTGRES_PASSWORD=c4c6ce446bd2a17a4764b9aada51e5d243471512643ec84d43d5fccabb5cb2d0 \
+  -e POSTGRES_PASSWORD=woofwoof \
   -e POSTGRES_DB=chainsawman \
   postgres
