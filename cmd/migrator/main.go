@@ -1,7 +1,6 @@
-package main
+package migrator
 
 import (
-	"flag"
 	"fmt"
 
 	db "github.com/stevenhansel/csm-ending-prediction-be/database"
@@ -16,20 +15,8 @@ const (
 	MigrateDown MigrationCommand = "down"
 )
 
-func main() {
-	var cmd string
-	environment := config.DEVELOPMENT
-
-	flag.Var(
-		&environment,
-		"env",
-		"application environment, could be either (development|staging|production)",
-	)
-
-	flag.StringVar(&cmd, "command", "up", `The migration command, could be "up" or "down", the default is "up"`)
-	flag.Parse()
-
-	command := MigrationCommand(cmd)
+func run(environment config.Environment, migrationCommand MigrationCommand) {
+	command := MigrationCommand(migrationCommand)
 
 	app, err := NewMigrationApp(environment)
 	if err != nil {

@@ -1,8 +1,7 @@
-package main
+package api
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -10,8 +9,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"go.uber.org/zap"
-    _ "github.com/lib/pq"
 
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/config"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/container"
@@ -21,28 +20,20 @@ import (
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/songs"
 )
 
-func main() {
+func run(environment config.Environment) {
 	log, err := zap.NewProduction()
 	if err != nil {
 		os.Exit(1)
 	}
 
-	if err := run(log); err != nil {
+	if err := internalRun(environment, log); err != nil {
 		log.Fatal("Internal Server Error", zap.String("error", fmt.Sprint(err)))
 		os.Exit(1)
 	}
 }
 
-func run(log *zap.Logger) error {
+func internalRun(environment config.Environment, log *zap.Logger) error {
 	ctx := context.Background()
-
-	environment := config.DEVELOPMENT
-	flag.Var(
-		&environment,
-		"env",
-		"application environment, could be either (development|staging|production)",
-	)
-	flag.Parse()
 
 	log, err := zap.NewProduction()
 	if err != nil {
@@ -61,11 +52,11 @@ func run(log *zap.Logger) error {
 
 	dbQuerier := database.New(db)
 
-  songService := songs.NewService(dbQuerier)
+	songService := songs.NewService(dbQuerier)
 
-  if err := songService.InitializeSongs(ctx); err != nil {
+	if err := songService.InitializeSongs(ctx); err != nil {
 		return errtrace.Wrap(err)
-  }
+	}
 
 	container := container.New(log, config, songService)
 

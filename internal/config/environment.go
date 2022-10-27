@@ -30,3 +30,7 @@ func (e *Environment) Set(value string) error {
 func (e *Environment) String() string {
 	return string(*e)
 }
+
+func (e *Environment) Type() string {
+  return "environment"
+}

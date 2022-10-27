@@ -1,8 +1,9 @@
 package main
 
-import "github.com/spf13/cobra"
-
-var rootCmd = &cobra.Command{}
+import (
+	"github.com/stevenhansel/csm-ending-prediction-be/cmd"
+)
 
 func main() {
+  cmd.Execute()
 }
