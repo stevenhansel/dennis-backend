@@ -11,6 +11,7 @@ import (
 
 type Container struct {
 	Log                   *zap.Logger
+	Environment           config.Environment
 	Config                *config.Configuration
 	Responseutil          *responseutil.Responseutil
 	SongService           *songs.SongService
@@ -18,9 +19,18 @@ type Container struct {
 	EpisodeHttpController *episodes.EpisodeHttpController
 }
 
-func New(log *zap.Logger, config *config.Configuration, responseutil *responseutil.Responseutil, songService *songs.SongService, episodeService *episodes.EpisodeService, episodeHttpController *episodes.EpisodeHttpController) *Container {
+func New(
+	log *zap.Logger,
+	environment config.Environment,
+	config *config.Configuration,
+	responseutil *responseutil.Responseutil,
+	songService *songs.SongService,
+	episodeService *episodes.EpisodeService,
+	episodeHttpController *episodes.EpisodeHttpController,
+) *Container {
 	return &Container{
 		Log:                   log,
+		Environment:           environment,
 		Config:                config,
 		Responseutil:          responseutil,
 		SongService:           songService,

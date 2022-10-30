@@ -50,7 +50,7 @@ func New(container *container.Container) *Server {
 func (s *Server) registerHandler() chi.Router {
 	r := chi.NewRouter()
 
-	r.Use(middleware.Cors())
+	r.Use(middleware.Cors(s.container.Environment))
 	s.registerHttpHandler(r)
 	s.registerWsHandler(r)
 

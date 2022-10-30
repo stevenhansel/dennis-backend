@@ -67,7 +67,7 @@ func internalRun(environment config.Environment, log *zap.Logger) error {
 
 	episodeHttpController := episodes.NewEpisodeHttpController(episodeService, responseutil)
 
-	container := container.New(log, config, responseutil, songService, episodeService, episodeHttpController)
+	container := container.New(log, environment, config, responseutil, songService, episodeService, episodeHttpController)
 
 	l, err := net.Listen("tcp", config.LISTEN_ADDR)
 	if err != nil {
