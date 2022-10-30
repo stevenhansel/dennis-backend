@@ -80,7 +80,7 @@ var subcommands = map[string]func() *cobra.Command{
 					EpisodeName:        episodeName,
 					EpisodeReleaseDate: episodeReleaseDate,
 				}); err != nil {
-					fmt.Println("Something when wrong when creating the episode")
+          fmt.Printf("Something when wrong when creating the episode: %v\n", err)
 					os.Exit(1)
 				}
 
