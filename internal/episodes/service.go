@@ -3,12 +3,14 @@ package episodes
 import (
 	"context"
 
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier/database"
 )
 
 type EpisodeQuerier interface {
 	InsertEpisode(ctx context.Context, params *database.InsertEpisodeParams) error
 	ChangeCurrentEpisode(ctx context.Context, episodeID int) error
+	FindAllEpisodes(ctx context.Context) ([]*querier.Episode, error)
 }
 
 type EpisodeService struct {
@@ -27,4 +29,8 @@ func (s *EpisodeService) CreateEpisode(ctx context.Context, params *database.Ins
 
 func (s *EpisodeService) ChangeCurrentEpisode(ctx context.Context, episodeNumber int) error {
 	return s.querier.ChangeCurrentEpisode(ctx, episodeNumber)
+}
+
+func (s *EpisodeService) FindAllEpisodes(ctx context.Context) ([]*querier.Episode, error) {
+	return s.querier.FindAllEpisodes(ctx)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/config"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/episodes"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/errtrace"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier/database"
 )
 
@@ -39,4 +40,8 @@ func (c *EpisodeController) createEpisode(params *database.InsertEpisodeParams) 
 
 func (c *EpisodeController) changeCurrentEpisode(episodeNumber int) error {
 	return c.service.ChangeCurrentEpisode(context.Background(), episodeNumber)
+}
+
+func (c *EpisodeController) FindAllEpisodes() ([]*querier.Episode, error) {
+	return c.service.FindAllEpisodes(context.Background())
 }
