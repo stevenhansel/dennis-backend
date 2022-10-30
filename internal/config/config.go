@@ -1,7 +1,9 @@
 package config
 
 import (
+	"os"
 	"reflect"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -28,12 +30,16 @@ func initializeDevelopmentConfig() error {
 
 func initializeProductionConfig(config *Configuration) error {
 	fields := reflect.VisibleFields(reflect.TypeOf(*config))
+	for _, e := range os.Environ() {
+		pair := strings.SplitN(e, "=", 2)
 
-	for _, field := range fields {
-		viper.SetDefault(field.Tag.Get("mapstructure"), reflect.Zero(field.Type))
+		for _, field := range fields {
+			fieldName := field.Tag.Get("mapstructure")
+			if fieldName == pair[0] {
+				reflect.ValueOf(config).Elem().FieldByName(fieldName).SetString(pair[1])
+			}
+		}
 	}
-
-	viper.AutomaticEnv()
 
 	return nil
 }

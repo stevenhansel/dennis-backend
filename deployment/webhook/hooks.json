@@ -1,0 +1,20 @@
+[
+  {
+    "id": "deploy",
+    "execute-command": "trigger.sh",
+    "command-working-directory": "/etc/webhook",
+    "response-message": "Executing deploy script...",
+    "trigger-rule":
+    {
+        "match": {
+            "type": "value",
+            "value": "",
+            "parameter":
+            {
+              "source": "url",
+              "name": "token"
+            }
+        }
+    }
+  }
+]
