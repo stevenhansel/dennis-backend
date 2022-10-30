@@ -8,12 +8,12 @@ import (
 )
 
 func Cors(environment config.Environment) func(http.Handler) http.Handler {
-	origins := []string{}
-	if environment == config.PRODUCTION {
-		origins = append(origins, "https://dennis.dog")
-	} else {
-		origins = append(origins, "*")
-	}
+	origins := []string{"*"}
+	// if environment == config.PRODUCTION {
+	// 	origins = append(origins, "https://dennis.dog")
+	// } else {
+	// 	origins = append(origins, "*")
+	// }
 
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   origins,

@@ -1,4 +1,4 @@
-c nullreate table "song" (
+create table "song" (
   "id" serial primary key,
   "song_name_jp" varchar(255) not null,
   "song_name_en" varchar(255),
