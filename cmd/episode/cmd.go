@@ -22,16 +22,16 @@ import (
 var subcommands = map[string]func() *cobra.Command{
 	"create": func() *cobra.Command {
 		environment := config.DEVELOPMENT
-		controller, err := episodes.NewCmdController(environment)
-		if err != nil {
-			fmt.Printf("Something when wrong when executing the command: %v", err)
-			os.Exit(1)
-		}
-
 		command := &cobra.Command{
 			Use:   "create",
 			Short: "Create a new episode",
 			Run: func(cmd *cobra.Command, args []string) {
+				controller, err := episodes.NewCmdController(environment)
+				if err != nil {
+					fmt.Printf("Something when wrong when executing the command: %v", err)
+					os.Exit(1)
+				}
+
 				reader := bufio.NewReader(os.Stdin)
 
 				fmt.Printf("Episode Number: ")
@@ -80,7 +80,7 @@ var subcommands = map[string]func() *cobra.Command{
 					EpisodeName:        episodeName,
 					EpisodeReleaseDate: episodeReleaseDate,
 				}); err != nil {
-          fmt.Printf("Something when wrong when creating the episode: %v\n", err)
+					fmt.Printf("Something when wrong when creating the episode: %v\n", err)
 					os.Exit(1)
 				}
 
@@ -94,16 +94,16 @@ var subcommands = map[string]func() *cobra.Command{
 	},
 	"change": func() *cobra.Command {
 		environment := config.DEVELOPMENT
-		controller, err := episodes.NewCmdController(environment)
-		if err != nil {
-			fmt.Printf("Something when wrong when executing the command: %v", err)
-			os.Exit(1)
-		}
-
 		command := &cobra.Command{
 			Use:   "change",
 			Short: "Change the current active episode",
 			Run: func(cmd *cobra.Command, args []string) {
+				controller, err := episodes.NewCmdController(environment)
+				if err != nil {
+					fmt.Printf("Something when wrong when executing the command: %v", err)
+					os.Exit(1)
+				}
+
 				reader := bufio.NewReader(os.Stdin)
 
 				fmt.Printf("Episode Number: ")
@@ -155,7 +155,7 @@ func newListEpisodeModel(episodes []*querier.Episode) listEpisodeModel {
 			desc += fmt.Sprintf("%s ", *e.EpisodeName)
 		}
 
-    desc += e.EpisodeDate.Format(time.RFC1123)
+		desc += e.EpisodeDate.Format(time.RFC1123)
 
 		items[i] = listEpisodeItem{
 			title: fmt.Sprintf("Episode #%d", e.Episode),
