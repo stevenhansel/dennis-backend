@@ -1,22 +1,20 @@
-package episode
+package episodes
 
 import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
-
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/config"
-	"github.com/stevenhansel/csm-ending-prediction-be/internal/episodes"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/errtrace"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier/database"
 )
 
-type EpisodeController struct {
-	service *episodes.EpisodeService
+type EpisodeCmdController struct {
+	service *EpisodeService
 }
 
-func initializeController(environment config.Environment) (*EpisodeController, error) {
+func NewCmdController(environment config.Environment) (*EpisodeCmdController, error) {
 	config, err := config.New(environment)
 	if err != nil {
 		return nil, errtrace.Wrap(err)
@@ -27,21 +25,21 @@ func initializeController(environment config.Environment) (*EpisodeController, e
 		return nil, errtrace.Wrap(err)
 	}
 
-	service := episodes.NewService(database.New(db))
+	service := NewService(database.New(db))
 
-	return &EpisodeController{
+	return &EpisodeCmdController{
 		service: service,
 	}, nil
 }
 
-func (c *EpisodeController) createEpisode(params *database.InsertEpisodeParams) error {
+func (c *EpisodeCmdController) CreateEpisode(params *database.InsertEpisodeParams) error {
 	return c.service.CreateEpisode(context.Background(), params)
 }
 
-func (c *EpisodeController) changeCurrentEpisode(episodeNumber int) error {
+func (c *EpisodeCmdController) ChangeCurrentEpisode(episodeNumber int) error {
 	return c.service.ChangeCurrentEpisode(context.Background(), episodeNumber)
 }
 
-func (c *EpisodeController) FindAllEpisodes() ([]*querier.Episode, error) {
+func (c *EpisodeCmdController) FindAllEpisodes() ([]*querier.Episode, error) {
 	return c.service.FindAllEpisodes(context.Background())
 }

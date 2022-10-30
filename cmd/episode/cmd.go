@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/config"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/episodes"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier/database"
 )
@@ -21,7 +22,7 @@ import (
 var subcommands = map[string]func() *cobra.Command{
 	"create": func() *cobra.Command {
 		environment := config.DEVELOPMENT
-		controller, err := initializeController(environment)
+		controller, err := episodes.NewCmdController(environment)
 		if err != nil {
 			fmt.Printf("Something when wrong when executing the command: %v", err)
 			os.Exit(1)
@@ -74,7 +75,7 @@ var subcommands = map[string]func() *cobra.Command{
 					os.Exit(1)
 				}
 
-				if err := controller.createEpisode(&database.InsertEpisodeParams{
+				if err := controller.CreateEpisode(&database.InsertEpisodeParams{
 					Episode:            episodeNumber,
 					EpisodeName:        episodeName,
 					EpisodeReleaseDate: episodeReleaseDate,
@@ -93,7 +94,7 @@ var subcommands = map[string]func() *cobra.Command{
 	},
 	"change": func() *cobra.Command {
 		environment := config.DEVELOPMENT
-		controller, err := initializeController(environment)
+		controller, err := episodes.NewCmdController(environment)
 		if err != nil {
 			fmt.Printf("Something when wrong when executing the command: %v", err)
 			os.Exit(1)
@@ -119,7 +120,7 @@ var subcommands = map[string]func() *cobra.Command{
 					os.Exit(1)
 				}
 
-				if err := controller.changeCurrentEpisode(episodeNumber); err != nil {
+				if err := controller.ChangeCurrentEpisode(episodeNumber); err != nil {
 					fmt.Printf("Something when wrong when changing the current episode: %v", err)
 					os.Exit(1)
 				}
@@ -201,7 +202,7 @@ func CreateEpisodeCmd() *cobra.Command {
 		Use:   "episode",
 		Short: "View list of all episodes available",
 		Run: func(cmd *cobra.Command, args []string) {
-			controller, err := initializeController(environment)
+			controller, err := episodes.NewCmdController(environment)
 			if err != nil {
 				fmt.Printf("Something when wrong when executing the command: %v\n", err)
 				os.Exit(1)
