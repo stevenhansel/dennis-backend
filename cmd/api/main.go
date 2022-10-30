@@ -20,6 +20,7 @@ import (
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/server"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/server/responseutil"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/songs"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/votes"
 )
 
 func run(environment config.Environment) {
@@ -61,13 +62,22 @@ func internalRun(environment config.Environment, log *zap.Logger) error {
 	}
 
 	episodeService := episodes.NewService(dbQuerier)
-	if err != nil {
-		return errtrace.Wrap(err)
-	}
+	voteService := votes.NewService(dbQuerier)
 
-	episodeHttpController := episodes.NewEpisodeHttpController(episodeService, responseutil)
+	episodeHttpController := episodes.NewEpisodeHttpController(responseutil, episodeService)
+	voteHttpController := votes.NewVoteHttpController(responseutil, voteService)
 
-	container := container.New(log, environment, config, responseutil, songService, episodeService, episodeHttpController)
+	container := container.New(
+		log,
+		environment,
+		config,
+		responseutil,
+		songService,
+		episodeService,
+		voteService,
+		episodeHttpController,
+		voteHttpController,
+	)
 
 	l, err := net.Listen("tcp", config.LISTEN_ADDR)
 	if err != nil {

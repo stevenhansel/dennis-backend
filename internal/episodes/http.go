@@ -10,14 +10,14 @@ import (
 )
 
 type EpisodeHttpController struct {
-	service      *EpisodeService
 	responseutil *responseutil.Responseutil
+	service      *EpisodeService
 }
 
-func NewEpisodeHttpController(service *EpisodeService, responseutil *responseutil.Responseutil) *EpisodeHttpController {
+func NewEpisodeHttpController(responseutil *responseutil.Responseutil, service *EpisodeService) *EpisodeHttpController {
 	return &EpisodeHttpController{
-		service:      service,
 		responseutil: responseutil,
+		service:      service,
 	}
 }
 
@@ -50,7 +50,7 @@ func (c *EpisodeHttpController) GetEpisodeByID(w http.ResponseWriter, r *http.Re
 				http.StatusNotFound,
 				err.Error(),
 			)
-      return
+			return
 		}
 
 		res.Error5xx(err)

@@ -42,6 +42,7 @@ func toEpisodeDetail(row []*EpisodeDetailRow) *querier.EpisodeDetail {
 	for i, s := range row {
 		songs[i] = &querier.EpisodeSong{
 			ID:            s.SongID,
+			EpisodeSongID: s.EpisodeSongID,
 			SongNameJP:    s.SongNameJP,
 			SongNameEN:    s.SongNameEN,
 			ArtistNameJP:  s.SongArtistNameJP,
@@ -199,6 +200,7 @@ type EpisodeDetailRow struct {
 	SongArtistNameJP  string    `db:"song_artist_name_jp"`
 	SongArtistNameEN  string    `db:"song_artist_name_en"`
 	SongCoverImageURL string    `db:"song_cover_image_url"`
+	EpisodeSongID     int       `db:"episode_song_id"`
 }
 
 type FindEpisodeDetailParams struct {
@@ -219,7 +221,8 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
     "s"."song_name_en" as "song_name_en",
     "s"."artist_name_jp" as "song_artist_name_jp",
     "s"."artist_name_en" as "song_artist_name_en",
-    "s"."cover_image_url" as "song_cover_image_url"
+    "s"."cover_image_url" as "song_cover_image_url",
+    "es"."episode_song_id" as "episode_song_id"
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
   join "song" "s" on "s"."id" = "es" ."song_id"
@@ -251,7 +254,8 @@ func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.Epis
     "s"."song_name_en" as "song_name_en",
     "s"."artist_name_jp" as "song_artist_name_jp",
     "s"."artist_name_en" as "song_artist_name_en",
-    "s"."cover_image_url" as "song_cover_image_url"
+    "s"."cover_image_url" as "song_cover_image_url",
+    "es"."episode_song_id" as "episode_song_id"
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
   join "song" "s" on "s"."id" = "es" ."song_id"
@@ -264,4 +268,38 @@ func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.Epis
 	}
 
 	return toEpisodeDetail(row), nil
+}
+
+func (d *DatabaseQuerier) FindEpisodeDetailByEpisodeSongID(ctx context.Context, episodeSongID int) (*querier.EpisodeDetail, error) {
+	queryStatement := `
+  select
+    "e"."id" as "episode_id",
+    "e"."episode" as "episode_number",
+    "e"."episode_name" as "episode_name",
+    "e"."episode_date" as "episode_date",
+    "e"."is_current" as "episode_is_current",
+    "s"."id" as "song_id",
+    "s"."song_name_jp" as "song_name_jp",
+    "s"."song_name_en" as "song_name_en",
+    "s"."artist_name_jp" as "song_artist_name_jp",
+    "s"."artist_name_en" as "song_artist_name_en",
+    "s"."cover_image_url" as "song_cover_image_url",
+    "es"."id" as "episode_song_id"
+  from "episode_song" "es"
+  join "episode" "e" on "e"."id" = "es"."episode_id"
+  join "song" "s" on "s"."id" = "es" ."song_id"
+  where "e"."id" = (select "episode_id" from "episode_song" where "id" = $1)
+  `
+
+	var row []*EpisodeDetailRow
+	if err := d.db.SelectContext(ctx, &row, queryStatement, episodeSongID); err != nil {
+		return nil, err
+	}
+
+	if len(row) == 0 {
+		return nil, sql.ErrNoRows
+	}
+
+	return toEpisodeDetail(row), nil
+
 }

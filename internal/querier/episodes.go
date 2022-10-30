@@ -21,6 +21,7 @@ type EpisodeDetail struct {
 
 type EpisodeSong struct {
 	ID            int    `json:"id"`
+	EpisodeSongID int    `json:"episodeSongId"`
 	SongNameJP    string `json:"songNameJp"`
 	SongNameEN    string `json:"songNameEn"`
 	ArtistNameJP  string `json:"artistNameJp"`
