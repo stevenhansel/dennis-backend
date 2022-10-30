@@ -1,9 +1,52 @@
 package episodes
 
-type EpisodeHttpController struct{}
+import (
+	"net/http"
+	"strconv"
 
-func NewEpisodeHttpController() *EpisodeHttpController {
-	return &EpisodeHttpController{}
+	"github.com/go-chi/chi/v5"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/server/responseutil"
+)
+
+type EpisodeHttpController struct {
+	service      *EpisodeService
+	responseutil *responseutil.Responseutil
 }
 
-func (c *EpisodeHttpController) GetCurrentEpisode() {}
+func NewEpisodeHttpController(service *EpisodeService, responseutil *responseutil.Responseutil) *EpisodeHttpController {
+	return &EpisodeHttpController{
+		service:      service,
+		responseutil: responseutil,
+	}
+}
+
+func (c *EpisodeHttpController) GetCurrentEpisode(w http.ResponseWriter, r *http.Request) {
+	res := c.responseutil.CreateResponse(w)
+
+	episode, err := c.service.FindCurrentEpisode(r.Context())
+	if err != nil {
+		res.Error5xx(err)
+		return
+	}
+
+	res.JSON(http.StatusOK, episode)
+}
+
+func (c *EpisodeHttpController) GetEpisodeByID(w http.ResponseWriter, r *http.Request) {
+	res := c.responseutil.CreateResponse(w)
+
+	strEpisodeID := chi.URLParam(r, "episodeId")
+	episodeID, err := strconv.Atoi(strEpisodeID)
+	if err != nil {
+		res.Error4xx(http.StatusBadRequest, "Episode ID must be a valid integer")
+		return
+	}
+
+	episode, err := c.service.FindEpisodeDetailByID(r.Context(), episodeID)
+	if err != nil {
+		res.Error5xx(err)
+		return
+	}
+
+	res.JSON(http.StatusOK, episode)
+}

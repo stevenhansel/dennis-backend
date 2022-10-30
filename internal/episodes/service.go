@@ -11,6 +11,8 @@ type EpisodeQuerier interface {
 	InsertEpisode(ctx context.Context, params *database.InsertEpisodeParams) error
 	ChangeCurrentEpisode(ctx context.Context, episodeID int) error
 	FindAllEpisodes(ctx context.Context) ([]*querier.Episode, error)
+	FindEpisodeDetailByID(ctx context.Context, episodeID int) (*querier.EpisodeDetail, error)
+	FindCurrentEpisode(ctx context.Context) (*querier.EpisodeDetail, error)
 }
 
 type EpisodeService struct {
@@ -33,4 +35,12 @@ func (s *EpisodeService) ChangeCurrentEpisode(ctx context.Context, episodeNumber
 
 func (s *EpisodeService) FindAllEpisodes(ctx context.Context) ([]*querier.Episode, error) {
 	return s.querier.FindAllEpisodes(ctx)
+}
+
+func (s *EpisodeService) FindEpisodeDetailByID(ctx context.Context, episodeID int) (*querier.EpisodeDetail, error) {
+	return s.querier.FindEpisodeDetailByID(ctx, episodeID)
+}
+
+func (s *EpisodeService) FindCurrentEpisode(ctx context.Context) (*querier.EpisodeDetail, error) {
+	return s.querier.FindCurrentEpisode(ctx)
 }

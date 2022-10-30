@@ -54,6 +54,4 @@ func (s *Server) registerHandler() chi.Router {
 	return r
 }
 
-func (s *Server) registerHttpHandler(r chi.Router) {}
-
 func (s *Server) registerWsHandler(r chi.Router) {}

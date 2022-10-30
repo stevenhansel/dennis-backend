@@ -14,9 +14,11 @@ import (
 
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/config"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/container"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/episodes"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/errtrace"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier/database"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/server"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/server/responseutil"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/songs"
 )
 
@@ -45,20 +47,27 @@ func internalRun(environment config.Environment, log *zap.Logger) error {
 		return errtrace.Wrap(err)
 	}
 
+	responseutil := responseutil.New(log)
+
 	db, err := sqlx.Connect("postgres", config.POSTGRES_CONNECTION_URI)
 	if err != nil {
 		return errtrace.Wrap(err)
 	}
-
 	dbQuerier := database.New(db)
 
 	songService := songs.NewService(dbQuerier)
-
 	if err := songService.InitializeSongs(ctx); err != nil {
 		return errtrace.Wrap(err)
 	}
 
-	container := container.New(log, config, songService)
+	episodeService := episodes.NewService(dbQuerier)
+	if err != nil {
+		return errtrace.Wrap(err)
+	}
+
+	episodeHttpController := episodes.NewEpisodeHttpController(episodeService, responseutil)
+
+	container := container.New(log, config, responseutil, songService, episodeService, episodeHttpController)
 
 	l, err := net.Listen("tcp", config.LISTEN_ADDR)
 	if err != nil {

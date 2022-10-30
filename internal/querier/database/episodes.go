@@ -73,7 +73,7 @@ func (d *DatabaseQuerier) InsertEpisode(ctx context.Context, params *InsertEpiso
   `
 
 	var episodeID int
-	if err := d.db.QueryRow(statement, params.Episode, params.EpisodeName, params.EpisodeReleaseDate).Scan(&episodeID); err != nil {
+	if err := d.db.QueryRowContext(ctx, statement, params.Episode, params.EpisodeName, params.EpisodeReleaseDate).Scan(&episodeID); err != nil {
 		return errtrace.Wrap(err)
 	}
 
@@ -94,6 +94,10 @@ func (d *DatabaseQuerier) InsertEpisode(ctx context.Context, params *InsertEpiso
 		return errtrace.Wrap(err)
 	}
 
+	if err := d.ChangeCurrentEpisode(ctx, params.Episode); err != nil {
+		return errtrace.Wrap(err)
+	}
+
 	return nil
 }
 
@@ -109,7 +113,7 @@ func (d *DatabaseQuerier) InitializeEpisodeSong(ctx context.Context, params []*I
   values (:episode_id, :song_id)
   `
 
-	if _, err := d.db.NamedExec(statement, params); err != nil {
+	if _, err := d.db.NamedExecContext(ctx, statement, params); err != nil {
 		return err
 	}
 
@@ -129,23 +133,23 @@ func (d *DatabaseQuerier) ChangeCurrentEpisode(ctx context.Context, episodeNumbe
   from "episode"
   where "is_current" = true
   `
-	err := d.db.Select(&currentEpisodeNumber, queryStatement)
+	err := d.db.SelectContext(ctx, &currentEpisodeNumber, queryStatement)
 	if err != nil {
 		return errtrace.Wrap(err)
 	}
 
 	if len(currentEpisodeNumber) == 0 {
-		_, err := d.db.Exec(updateStatement, episodeNumber, true)
+		_, err := d.db.ExecContext(ctx, updateStatement, episodeNumber, true)
 		if err != nil {
 			return errtrace.Wrap(err)
 		}
 	} else {
-		_, err := d.db.Exec(updateStatement, currentEpisodeNumber[0], false)
+		_, err := d.db.ExecContext(ctx, updateStatement, currentEpisodeNumber[0], false)
 		if err != nil {
 			return errtrace.Wrap(err)
 		}
 
-		_, err = d.db.Exec(updateStatement, episodeNumber, true)
+		_, err = d.db.ExecContext(ctx, updateStatement, episodeNumber, true)
 		if err != nil {
 			return errtrace.Wrap(err)
 		}
@@ -156,7 +160,7 @@ func (d *DatabaseQuerier) ChangeCurrentEpisode(ctx context.Context, episodeNumbe
 }
 
 type EpisodeRow struct {
-	ID          int       `db:"id"`
+	ID          int       `db:"episode_id"`
 	Episode     int       `db:"episode_number"`
 	EpisodeName *string   `db:"episode_name"`
 	EpisodeDate time.Time `db:"episode_date"`
@@ -175,7 +179,7 @@ func (d *DatabaseQuerier) FindAllEpisodes(ctx context.Context) ([]*querier.Episo
   order by "e"."id" asc
   `
 	var rows []*EpisodeRow
-	if err := d.db.Select(&rows, queryStatement); err != nil {
+	if err := d.db.SelectContext(ctx, &rows, queryStatement); err != nil {
 		return nil, err
 	}
 
@@ -196,11 +200,16 @@ type EpisodeDetailRow struct {
 	SongCoverImageURL string    `db:"song_cover_image_url"`
 }
 
+type FindEpisodeDetailParams struct {
+	EpisodeID int   `db:"episode_id"`
+	IsCurrent *bool `db:"is_current"`
+}
+
 func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID int) (*querier.EpisodeDetail, error) {
 	queryStatement := `
   select
     "e"."id" as "episode_id",
-    "e"."episode" as "episde_number",
+    "e"."episode" as "episode_number",
     "e"."episode_name" as "episode_name",
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
@@ -217,7 +226,35 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
   `
 
 	var row []*EpisodeDetailRow
-	if err := d.db.Select(&row, queryStatement); err != nil {
+	if err := d.db.SelectContext(ctx, &row, queryStatement, episodeID); err != nil {
+		return nil, err
+	}
+
+	return toEpisodeDetail(row), nil
+}
+
+func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.EpisodeDetail, error) {
+	queryStatement := `
+  select
+    "e"."id" as "episode_id",
+    "e"."episode" as "episode_number",
+    "e"."episode_name" as "episode_name",
+    "e"."episode_date" as "episode_date",
+    "e"."is_current" as "episode_is_current",
+    "s"."id" as "song_id",
+    "s"."song_name_jp" as "song_name_jp",
+    "s"."song_name_en" as "song_name_en",
+    "s"."artist_name_jp" as "song_artist_name_jp",
+    "s"."artist_name_en" as "song_artist_name_en",
+    "s"."cover_image_url" as "song_cover_image_url"
+  from "episode_song" "es"
+  join "episode" "e" on "e"."id" = "es"."episode_id"
+  join "song" "s" on "s"."id" = "es" ."song_id"
+  where "e"."is_current" = true
+  `
+
+	var row []*EpisodeDetailRow
+	if err := d.db.SelectContext(ctx, &row, queryStatement); err != nil {
 		return nil, err
 	}
 
