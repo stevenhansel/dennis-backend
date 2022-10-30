@@ -17,21 +17,19 @@ import (
 var subcommands = map[string]func() *cobra.Command{
 	"create": func() *cobra.Command {
 		environment := config.DEVELOPMENT
+		controller, err := initializeController(environment)
+		if err != nil {
+			fmt.Printf("Something when wrong when executing the command: %v", err)
+			os.Exit(1)
+		}
 
 		command := &cobra.Command{
 			Use:   "create",
 			Short: "Create a new episode",
 			Run: func(cmd *cobra.Command, args []string) {
-				controller, err := initializeController(environment)
-				if err != nil {
-					fmt.Printf("Something when wrong when executing the command: %v", err)
-					os.Exit(1)
-				}
-
 				reader := bufio.NewReader(os.Stdin)
 
 				fmt.Printf("Episode Number: ")
-
 				episodeNumberStr, err := reader.ReadString('\n')
 				if err != nil {
 					fmt.Println("Invalid input")
@@ -41,14 +39,12 @@ var subcommands = map[string]func() *cobra.Command{
 				episodeNumberStr = strings.Trim(episodeNumberStr, "\n")
 				episodeNumber, err := strconv.Atoi(episodeNumberStr)
 				if err != nil {
-					fmt.Println("err: ", err)
 					fmt.Println("Episode number should be a valid integer")
 					os.Exit(1)
 				}
 
-				fmt.Printf("Episode Name (optional): ")
-
 				var episodeName *string
+				fmt.Printf("Episode Name (optional): ")
 				episodeNameStr, err := reader.ReadString('\n')
 				if err != nil {
 					fmt.Println("Invalid input")
@@ -61,7 +57,6 @@ var subcommands = map[string]func() *cobra.Command{
 				}
 
 				fmt.Printf("Episode Release Date: ")
-
 				episodeReleaseDateStr, err := reader.ReadString('\n')
 				if err != nil {
 					fmt.Println("Invalid input")
@@ -92,11 +87,52 @@ var subcommands = map[string]func() *cobra.Command{
 
 		return command
 	},
+	"change": func() *cobra.Command {
+		environment := config.DEVELOPMENT
+		controller, err := initializeController(environment)
+		if err != nil {
+			fmt.Printf("Something when wrong when executing the command: %v", err)
+			os.Exit(1)
+		}
+
+		command := &cobra.Command{
+			Use:   "change",
+			Short: "Change the current active episode",
+			Run: func(cmd *cobra.Command, args []string) {
+				reader := bufio.NewReader(os.Stdin)
+
+				fmt.Printf("Episode Number: ")
+				episodeNumberStr, err := reader.ReadString('\n')
+				if err != nil {
+					fmt.Println("Invalid input")
+					os.Exit(1)
+				}
+
+				episodeNumberStr = strings.Trim(episodeNumberStr, "\n")
+				episodeNumber, err := strconv.Atoi(episodeNumberStr)
+				if err != nil {
+					fmt.Println("Episode number should be a valid integer")
+					os.Exit(1)
+				}
+
+				if err := controller.changeCurrentEpisode(episodeNumber); err != nil {
+					fmt.Printf("Something when wrong when changing the current episode: %v", err)
+					os.Exit(1)
+				}
+
+				fmt.Printf("Successfully changed the current episode to %d\n", episodeNumber)
+			},
+		}
+
+		return command
+	},
 }
 
 func CreateEpisodeCmd() *cobra.Command {
 	command := &cobra.Command{
-		Use: "episode",
+		Use:   "episode",
+		Short: "View list of all episodes available",
+		Run: func(cmd *cobra.Command, args []string) {},
 	}
 
 	for _, fn := range subcommands {

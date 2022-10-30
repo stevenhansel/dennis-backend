@@ -36,3 +36,7 @@ func initializeController(environment config.Environment) (*EpisodeController, e
 func (c *EpisodeController) createEpisode(params *database.InsertEpisodeParams) error {
 	return c.service.CreateEpisode(context.Background(), params)
 }
+
+func (c *EpisodeController) changeCurrentEpisode(episodeNumber int) error {
+	return c.service.ChangeCurrentEpisode(context.Background(), episodeNumber)
+}

@@ -8,6 +8,7 @@ import (
 
 type EpisodeQuerier interface {
 	InsertEpisode(ctx context.Context, params *database.InsertEpisodeParams) error
+	ChangeCurrentEpisode(ctx context.Context, episodeID int) error
 }
 
 type EpisodeService struct {
@@ -21,9 +22,9 @@ func NewService(querier EpisodeQuerier) *EpisodeService {
 }
 
 func (s *EpisodeService) CreateEpisode(ctx context.Context, params *database.InsertEpisodeParams) error {
-	if err := s.querier.InsertEpisode(ctx, params); err != nil {
-		return err
-	}
+	return s.querier.InsertEpisode(ctx, params)
+}
 
-	return nil
+func (s *EpisodeService) ChangeCurrentEpisode(ctx context.Context, episodeNumber int) error {
+	return s.querier.ChangeCurrentEpisode(ctx, episodeNumber)
 }

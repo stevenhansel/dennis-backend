@@ -37,6 +37,7 @@ var dbSubCommands = map[string]func() *cobra.Command{
 
 		return command
 	},
+  // TODO: add "create" command for migration
 }
 
 func CreateMigratorCmd() *cobra.Command {
