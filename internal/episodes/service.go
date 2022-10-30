@@ -2,6 +2,9 @@ package episodes
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier/database"
@@ -38,7 +41,14 @@ func (s *EpisodeService) FindAllEpisodes(ctx context.Context) ([]*querier.Episod
 }
 
 func (s *EpisodeService) FindEpisodeDetailByID(ctx context.Context, episodeID int) (*querier.EpisodeDetail, error) {
-	return s.querier.FindEpisodeDetailByID(ctx, episodeID)
+	episode, err := s.querier.FindEpisodeDetailByID(ctx, episodeID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, NewErrEpisodeNotFound(fmt.Errorf("Episode not found"))
+		}
+	}
+
+	return episode, nil
 }
 
 func (s *EpisodeService) FindCurrentEpisode(ctx context.Context) (*querier.EpisodeDetail, error) {

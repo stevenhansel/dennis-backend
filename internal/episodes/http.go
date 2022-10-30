@@ -1,6 +1,7 @@
 package episodes
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -44,6 +45,14 @@ func (c *EpisodeHttpController) GetEpisodeByID(w http.ResponseWriter, r *http.Re
 
 	episode, err := c.service.FindEpisodeDetailByID(r.Context(), episodeID)
 	if err != nil {
+		if realError := (ErrEpisodeNotFound{}); errors.As(err, &realError) {
+			res.Error4xx(
+				http.StatusNotFound,
+				err.Error(),
+			)
+      return
+		}
+
 		res.Error5xx(err)
 		return
 	}

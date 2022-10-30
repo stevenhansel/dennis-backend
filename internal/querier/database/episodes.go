@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/errtrace"
@@ -228,6 +229,10 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
 	var row []*EpisodeDetailRow
 	if err := d.db.SelectContext(ctx, &row, queryStatement, episodeID); err != nil {
 		return nil, err
+	}
+
+	if len(row) == 0 {
+		return nil, sql.ErrNoRows
 	}
 
 	return toEpisodeDetail(row), nil
