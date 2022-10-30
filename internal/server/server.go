@@ -5,8 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/container"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/server/middleware"
+
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/time/rate"
 )
 
@@ -48,6 +50,7 @@ func New(container *container.Container) *Server {
 func (s *Server) registerHandler() chi.Router {
 	r := chi.NewRouter()
 
+	r.Use(middleware.Cors())
 	s.registerHttpHandler(r)
 	s.registerWsHandler(r)
 
