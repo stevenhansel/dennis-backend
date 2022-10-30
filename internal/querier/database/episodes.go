@@ -222,7 +222,7 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
     "s"."artist_name_jp" as "song_artist_name_jp",
     "s"."artist_name_en" as "song_artist_name_en",
     "s"."cover_image_url" as "song_cover_image_url",
-    "es"."episode_song_id" as "episode_song_id"
+    "es"."id" as "episode_song_id"
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
   join "song" "s" on "s"."id" = "es" ."song_id"
@@ -255,7 +255,7 @@ func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.Epis
     "s"."artist_name_jp" as "song_artist_name_jp",
     "s"."artist_name_en" as "song_artist_name_en",
     "s"."cover_image_url" as "song_cover_image_url",
-    "es"."episode_song_id" as "episode_song_id"
+    "es"."id" as "episode_song_id"
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
   join "song" "s" on "s"."id" = "es" ."song_id"
