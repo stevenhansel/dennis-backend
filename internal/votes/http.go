@@ -5,7 +5,10 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/go-chi/chi/v5"
 
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/server/responseutil"
 )
@@ -62,4 +65,23 @@ func (c *VoteHttpController) InsertVote(w http.ResponseWriter, r *http.Request) 
 	}
 
 	res.JSON(http.StatusNoContent, nil)
+}
+
+func (c *VoteHttpController) GetVotesByEpisodeID(w http.ResponseWriter, r *http.Request) {
+	res := c.responseutil.CreateResponse(w)
+
+	strEpisodeID := chi.URLParam(r, "episodeId")
+	episodeID, err := strconv.Atoi(strEpisodeID)
+	if err != nil {
+		res.Error4xx(http.StatusBadRequest, "Episode ID must be a valid integer")
+		return
+	}
+
+	votes, err := c.service.GetVotesByEpisodeID(r.Context(), episodeID)
+	if err != nil {
+		res.Error5xx(err)
+		return
+	}
+
+	res.JSON(http.StatusOK, votes)
 }

@@ -28,6 +28,23 @@ func toVote(row *VoteRow) *querier.Vote {
 	}
 }
 
+func toEpisodeVotes(rows ...*EpisodeVoteRow) []*querier.EpisodeVote {
+	results := make([]*querier.EpisodeVote, len(rows))
+	for i, r := range rows {
+		results[i] = toEpisodeVote(r)
+	}
+
+	return results
+}
+
+func toEpisodeVote(row *EpisodeVoteRow) *querier.EpisodeVote {
+	return &querier.EpisodeVote{
+		EpisodeSongID: row.EpisodeSongID,
+		NumOfVotes:    row.NumOfVotes,
+		Rank:          row.Rank,
+	}
+}
+
 type InsertVoteParams struct {
 	IPAddress     string `db:"ip_address"`
 	EpisodeSongID int    `db:"episode_song_id"`
@@ -153,4 +170,34 @@ func (d *DatabaseQuerier) FindVotes(ctx context.Context, params *FindVotesParams
 	}
 
 	return toVotes(results...), nil
+}
+
+type EpisodeVoteRow struct {
+	EpisodeSongID int `db:"episode_song_id"`
+	NumOfVotes    int `db:"num_of_votes"`
+	Rank          int
+}
+
+func (d *DatabaseQuerier) FindEpisodeVotes(ctx context.Context, episodeID int) ([]*querier.EpisodeVote, error) {
+	statement := `
+  select
+    "es"."id" as "episode_song_id",
+    (select count(*) from "vote" where "episode_song_id" = "es"."id") as "num_of_votes"
+  from "episode_song" "es"
+  join "episode" "e" on "e"."id" = "es"."episode_id"
+  join "song" "s" on "s"."id" = "es" ."song_id"
+  where "e"."id" = $1
+  order by "num_of_votes" desc
+  `
+
+	var rows []*EpisodeVoteRow
+	if err := d.db.SelectContext(ctx, &rows, statement, episodeID); err != nil {
+		return nil, errtrace.Wrap(err)
+	}
+
+	for i, r := range rows {
+		r.Rank = i + 1
+	}
+
+	return toEpisodeVotes(rows...), nil
 }

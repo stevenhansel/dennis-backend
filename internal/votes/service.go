@@ -16,6 +16,7 @@ type Querier interface {
 	FindVotes(ctx context.Context, params *database.FindVotesParams) ([]*querier.Vote, error)
 	UpdateVoteEpisodeSongID(ctx context.Context, voteID int, episodeSongID int) error
 	FindEpisodeDetailByEpisodeSongID(ctx context.Context, episodeSongID int) (*querier.EpisodeDetail, error)
+	FindEpisodeVotes(ctx context.Context, episodeID int) ([]*querier.EpisodeVote, error)
 }
 
 type VoteService struct {
@@ -71,4 +72,8 @@ func (s *VoteService) InsertVote(ctx context.Context, params *InsertVoteParams) 
 			EpisodeSongID: params.EpisodeSongID,
 		})
 	}
+}
+
+func (c *VoteService) GetVotesByEpisodeID(ctx context.Context, episodeID int) ([]*querier.EpisodeVote, error) {
+	return c.querier.FindEpisodeVotes(ctx, episodeID)
 }
