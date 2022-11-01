@@ -59,3 +59,15 @@ func (c *EpisodeHttpController) GetEpisodeByID(w http.ResponseWriter, r *http.Re
 
 	res.JSON(http.StatusOK, episode)
 }
+
+func (c *EpisodeHttpController) GetAllEpisodes(w http.ResponseWriter, r *http.Request) {
+	res := c.responseutil.CreateResponse(w)
+
+	episodes, err := c.service.FindAllEpisodes(r.Context())
+	if err != nil {
+		res.Error5xx(err)
+		return
+	}
+
+	res.JSON(http.StatusOK, episodes)
+}
