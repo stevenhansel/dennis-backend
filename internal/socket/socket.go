@@ -57,7 +57,9 @@ func (s *SocketState) SubscribeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := websocket.Accept(w, r, nil)
+	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		OriginPatterns: []string{"*"},
+	})
 	if err != nil {
 		return
 	}
