@@ -81,7 +81,7 @@ func (c *VoteHttpController) InsertVote(w http.ResponseWriter, r *http.Request) 
 
 type hasVotedResponseBody struct {
 	HasVoted      bool `json:"hasVoted"`
-	EpisodeSongID *int `json:"episodeSongID"`
+	EpisodeSongID *int `json:"episodeSongId"`
 }
 
 func (c *VoteHttpController) HasVotedByEpisodeID(w http.ResponseWriter, r *http.Request) {
