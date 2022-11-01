@@ -26,14 +26,6 @@ func toSong(row *SongRow) *querier.Song {
 	}
 }
 
-type InsertSongParams struct {
-	SongNameJP    string `json:"songNameJp" db:"song_name_jp"`
-	SongNameEN    string `json:"songNameEn" db:"song_name_en"`
-	ArtistNameJP  string `json:"artistNameJp" db:"artist_name_jp"`
-	ArtistNameEN  string `json:"artistNameEn" db:"artist_name_en"`
-	CoverImageURL string `json:"coverImageUrl" db:"cover_image_url"`
-}
-
 func (d *DatabaseQuerier) CountSongs(ctx context.Context) (int, error) {
 	statement := `
   select count(*) as "count"
@@ -49,18 +41,22 @@ func (d *DatabaseQuerier) CountSongs(ctx context.Context) (int, error) {
 }
 
 type SongRow struct {
-	ID            int    `db:"id"`
-	SongNameJP    string `db:"song_name_jp"`
-	SongNameEN    string `db:"song_name_en"`
-	ArtistNameJP  string `db:"artist_name_jp"`
-	ArtistNameEN  string `db:"artist_name_en"`
-	CoverImageURL string `db:"cover_image_url"`
+	ID                int    `db:"id"`
+	ReleasedAtEpisode *int   `db:"released_at_episode"`
+	SongNameJP        string `db:"song_name_jp"`
+	SongNameEN        string `db:"song_name_en"`
+	ArtistNameJP      string `db:"artist_name_jp"`
+	ArtistNameEN      string `db:"artist_name_en"`
+	CoverImageURL     string `db:"cover_image_url"`
+	YoutubeURL        string `db:"youtube_url"`
+	SpotifyURL        string `db:"spotify_url"`
 }
 
 func (d *DatabaseQuerier) FindAllSongs(ctx context.Context) ([]*querier.Song, error) {
 	queryStatement := `
   select
     "s"."id" as "id",
+		"s"."released_at_episode" as "released_at_episode",
     "s"."song_name_jp" as "song_name_jp",
     "s"."song_name_en" as "song_name_en",
     "s"."artist_name_jp" as "artist_name_jp",
@@ -70,7 +66,7 @@ func (d *DatabaseQuerier) FindAllSongs(ctx context.Context) ([]*querier.Song, er
   order by "s"."id" asc
   `
 	var rows []*SongRow
-	if err := d.db.Select(&rows, queryStatement); err != nil {
+	if err := d.db.SelectContext(ctx, &rows, queryStatement); err != nil {
 		return nil, err
 	}
 
@@ -78,13 +74,50 @@ func (d *DatabaseQuerier) FindAllSongs(ctx context.Context) ([]*querier.Song, er
 
 }
 
+type InsertSongParams struct {
+	SongNameJP    string `json:"songNameJp" db:"song_name_jp"`
+	SongNameEN    string `json:"songNameEn" db:"song_name_en"`
+	ArtistNameJP  string `json:"artistNameJp" db:"artist_name_jp"`
+	ArtistNameEN  string `json:"artistNameEn" db:"artist_name_en"`
+	CoverImageURL string `json:"coverImageUrl" db:"cover_image_url"`
+}
+
 func (d *DatabaseQuerier) BulkInsertSong(ctx context.Context, params []*InsertSongParams) error {
 	statement := `
   insert into "song" ("song_name_jp", "song_name_en", "artist_name_jp", "artist_name_en", "cover_image_url")
   values (:song_name_jp, :song_name_en, :artist_name_jp, :artist_name_en, :cover_image_url)
   `
-	if _, err := d.db.NamedExec(statement, params); err != nil {
+	if _, err := d.db.NamedExecContext(ctx, statement, params); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+type UpdateSongParams struct {
+	ID            int    `json:"id" db:"id"`
+	SongNameJP    string `json:"songNameJp" db:"song_name_jp"`
+	SongNameEN    string `json:"songNameEn" db:"song_name_en"`
+	ArtistNameJP  string `json:"artistNameJp" db:"artist_name_jp"`
+	ArtistNameEN  string `json:"artistNameEn" db:"artist_name_en"`
+	CoverImageURL string `json:"coverImageUrl" db:"cover_image_url"`
+}
+
+func (d *DatabaseQuerier) BulkUpdateSong(ctx context.Context, params []*UpdateSongParams) error {
+	for _, p := range params {
+		statement := `
+		update "song"
+		set
+			song_name_jp = :song_name_jp, 
+			song_name_en = :song_name_en,
+			artist_name_jp = :artist_name_jp,
+			artist_name_en = :artist_name_en,
+			cover_image_url = :cover_image_url
+		where id = :id
+		`
+		if _, err := d.db.NamedExecContext(ctx, statement, p); err != nil {
+			return err
+		}
 	}
 
 	return nil
