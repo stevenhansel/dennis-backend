@@ -189,18 +189,21 @@ func (d *DatabaseQuerier) FindAllEpisodes(ctx context.Context) ([]*querier.Episo
 }
 
 type EpisodeDetailRow struct {
-	EpisodeID         int       `db:"episode_id"`
-	EpisodeNumber     int       `db:"episode_number"`
-	EpisodeName       *string   `db:"episode_name"`
-	EpisodeDate       time.Time `db:"episode_date"`
-	EpisodeIsCurrent  bool      `db:"episode_is_current"`
-	SongID            int       `db:"song_id"`
-	SongNameJP        string    `db:"song_name_jp"`
-	SongNameEN        string    `db:"song_name_en"`
-	SongArtistNameJP  string    `db:"song_artist_name_jp"`
-	SongArtistNameEN  string    `db:"song_artist_name_en"`
-	SongCoverImageURL string    `db:"song_cover_image_url"`
-	EpisodeSongID     int       `db:"episode_song_id"`
+	EpisodeID               int       `db:"episode_id"`
+	EpisodeNumber           int       `db:"episode_number"`
+	EpisodeName             *string   `db:"episode_name"`
+	EpisodeDate             time.Time `db:"episode_date"`
+	EpisodeIsCurrent        bool      `db:"episode_is_current"`
+	SongID                  int       `db:"song_id"`
+	SongReleasedAtEpisodeID *int      `db:"song_released_at_episode_id"`
+	SongNameJP              string    `db:"song_name_jp"`
+	SongNameEN              string    `db:"song_name_en"`
+	SongArtistNameJP        string    `db:"song_artist_name_jp"`
+	SongArtistNameEN        string    `db:"song_artist_name_en"`
+	SongCoverImageURL       string    `db:"song_cover_image_url"`
+	SongYoutubeURL          *string   `db:"song_youtube_url"`
+	SongSpotifyURL          *string   `db:"song_spotify_url"`
+	EpisodeSongID           int       `db:"episode_song_id"`
 }
 
 type FindEpisodeDetailParams struct {
@@ -217,11 +220,14 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
     "s"."id" as "song_id",
+		"s"."released_at_episode" as "song_released_at_episode_id",
     "s"."song_name_jp" as "song_name_jp",
     "s"."song_name_en" as "song_name_en",
     "s"."artist_name_jp" as "song_artist_name_jp",
     "s"."artist_name_en" as "song_artist_name_en",
     "s"."cover_image_url" as "song_cover_image_url",
+		"s"."youtube_url" as "song_youtube_url",
+		"s"."spotify_url" as "song_spotify_url",
     "es"."id" as "episode_song_id"
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
@@ -250,11 +256,14 @@ func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.Epis
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
     "s"."id" as "song_id",
+		"s"."released_at_episode" as "song_released_at_episode_id",
     "s"."song_name_jp" as "song_name_jp",
     "s"."song_name_en" as "song_name_en",
     "s"."artist_name_jp" as "song_artist_name_jp",
     "s"."artist_name_en" as "song_artist_name_en",
     "s"."cover_image_url" as "song_cover_image_url",
+		"s"."youtube_url" as "song_youtube_url",
+		"s"."spotify_url" as "song_spotify_url",
     "es"."id" as "episode_song_id"
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
@@ -279,11 +288,14 @@ func (d *DatabaseQuerier) FindEpisodeDetailByEpisodeSongID(ctx context.Context, 
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
     "s"."id" as "song_id",
+		"s"."released_at_episode" as "song_released_at_episode_id",
     "s"."song_name_jp" as "song_name_jp",
     "s"."song_name_en" as "song_name_en",
     "s"."artist_name_jp" as "song_artist_name_jp",
     "s"."artist_name_en" as "song_artist_name_en",
     "s"."cover_image_url" as "song_cover_image_url",
+		"s"."youtube_url" as "song_youtube_url",
+		"s"."spotify_url" as "song_spotify_url",
     "es"."id" as "episode_song_id"
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
