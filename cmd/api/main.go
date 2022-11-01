@@ -11,6 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
+	"golang.org/x/time/rate"
 
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/config"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/container"
@@ -19,6 +20,7 @@ import (
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier/database"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/server"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/server/responseutil"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/socket"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/songs"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/votes"
 )
@@ -56,13 +58,18 @@ func internalRun(environment config.Environment, log *zap.Logger) error {
 	}
 	dbQuerier := database.New(db)
 
+	socketState := socket.NewSocketState(
+		rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
+		512,
+	)
+
 	songService := songs.NewService(dbQuerier)
 	if err := songService.InitializeSongs(ctx); err != nil {
 		return errtrace.Wrap(err)
 	}
 
 	episodeService := episodes.NewService(dbQuerier)
-	voteService := votes.NewService(dbQuerier)
+	voteService := votes.NewService(dbQuerier, socketState)
 
 	episodeHttpController := episodes.NewEpisodeHttpController(responseutil, episodeService)
 	voteHttpController := votes.NewVoteHttpController(responseutil, voteService)
@@ -72,6 +79,7 @@ func internalRun(environment config.Environment, log *zap.Logger) error {
 		environment,
 		config,
 		responseutil,
+		socketState,
 		songService,
 		episodeService,
 		voteService,
@@ -90,7 +98,7 @@ func internalRun(environment config.Environment, log *zap.Logger) error {
 
 	errc := make(chan error, 1)
 	go func() {
-		errc <- s.HTTPServer.Serve(l)
+		errc <- s.Server.Serve(l)
 	}()
 
 	sigs := make(chan os.Signal, 1)
@@ -105,5 +113,5 @@ func internalRun(environment config.Environment, log *zap.Logger) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	return s.HTTPServer.Shutdown(ctx)
+	return s.Server.Shutdown(ctx)
 }

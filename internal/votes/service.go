@@ -9,6 +9,7 @@ import (
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/errtrace"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/querier/database"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/socket"
 )
 
 type Querier interface {
@@ -19,13 +20,19 @@ type Querier interface {
 	FindEpisodeVotes(ctx context.Context, episodeID int) ([]*querier.EpisodeVote, error)
 }
 
-type VoteService struct {
-	querier Querier
+type SocketStateQuerier interface {
+	Publish(payload socket.Payload)
 }
 
-func NewService(querier Querier) *VoteService {
+type VoteService struct {
+	querier Querier
+	socket  SocketStateQuerier
+}
+
+func NewService(querier Querier, socket SocketStateQuerier) *VoteService {
 	return &VoteService{
 		querier: querier,
+		socket:  socket,
 	}
 }
 
@@ -65,15 +72,36 @@ func (s *VoteService) InsertVote(ctx context.Context, params *InsertVoteParams) 
 	}
 
 	if existingVoteID != 0 {
-		return s.querier.UpdateVoteEpisodeSongID(ctx, existingVoteID, params.EpisodeSongID)
+		err = s.querier.UpdateVoteEpisodeSongID(ctx, existingVoteID, params.EpisodeSongID)
 	} else {
-		return s.querier.InsertVote(ctx, &database.InsertVoteParams{
+		err = s.querier.InsertVote(ctx, &database.InsertVoteParams{
 			IPAddress:     params.IPAddress,
 			EpisodeSongID: params.EpisodeSongID,
 		})
 	}
+
+	if err != nil {
+		return errtrace.Wrap(err)
+	}
+
+	return s.PublishVoteUpdate(ctx, episode.ID)
 }
 
 func (c *VoteService) GetVotesByEpisodeID(ctx context.Context, episodeID int) ([]*querier.EpisodeVote, error) {
 	return c.querier.FindEpisodeVotes(ctx, episodeID)
+}
+
+func (c *VoteService) PublishVoteUpdate(ctx context.Context, episodeID int) error {
+	votes, err := c.GetVotesByEpisodeID(ctx, episodeID)
+	if err != nil {
+		return errtrace.Wrap(err)
+	}
+
+	c.socket.Publish(socket.Payload{
+		Topic:     socket.NewVoteTopic,
+		EpisodeID: episodeID,
+		Message:   votes,
+	})
+
+	return nil
 }

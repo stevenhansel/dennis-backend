@@ -4,6 +4,7 @@ import (
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/config"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/episodes"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/server/responseutil"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/socket"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/songs"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/votes"
 
@@ -15,6 +16,7 @@ type Container struct {
 	Environment           config.Environment
 	Config                *config.Configuration
 	Responseutil          *responseutil.Responseutil
+	SocketState           *socket.SocketState
 	SongService           *songs.SongService
 	EpisodeService        *episodes.EpisodeService
 	VoteService           *votes.VoteService
@@ -27,6 +29,7 @@ func New(
 	environment config.Environment,
 	config *config.Configuration,
 	responseutil *responseutil.Responseutil,
+	socketState *socket.SocketState,
 	songService *songs.SongService,
 	episodeService *episodes.EpisodeService,
 	voteService *votes.VoteService,
@@ -38,6 +41,7 @@ func New(
 		Environment:           environment,
 		Config:                config,
 		Responseutil:          responseutil,
+		SocketState:           socketState,
 		SongService:           songService,
 		EpisodeService:        episodeService,
 		VoteService:           voteService,

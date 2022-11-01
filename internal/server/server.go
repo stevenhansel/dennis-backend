@@ -2,43 +2,26 @@ package server
 
 import (
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/container"
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/server/middleware"
 
 	"github.com/go-chi/chi/v5"
-	"golang.org/x/time/rate"
 )
 
 type Server struct {
 	container *container.Container
 
-	HTTPServer     *http.Server
-	InternalServer *InternalServer
-}
-
-type InternalServer struct {
-	subscriberMessageBuffer int
-	publishLimiter          *rate.Limiter
-	serveMux                http.ServeMux
-
-	subscribersMutex sync.Mutex
-	subscribers      map[*subscriber]struct{}
+	Server *http.Server
 }
 
 func New(container *container.Container) *Server {
 	s := &Server{
 		container: container,
-		InternalServer: &InternalServer{
-			subscriberMessageBuffer: 16,
-			subscribers:             make(map[*subscriber]struct{}),
-			publishLimiter:          rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
-		},
 	}
 
-	s.HTTPServer = &http.Server{
+	s.Server = &http.Server{
 		Handler:      s.registerHandler(),
 		ReadTimeout:  time.Second * 10,
 		WriteTimeout: time.Second * 10,
@@ -56,5 +39,3 @@ func (s *Server) registerHandler() chi.Router {
 
 	return r
 }
-
-func (s *Server) registerWsHandler(r chi.Router) {}
