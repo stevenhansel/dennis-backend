@@ -54,3 +54,4 @@ func (s *EpisodeService) FindEpisodeDetailByID(ctx context.Context, episodeID in
 func (s *EpisodeService) FindCurrentEpisode(ctx context.Context) (*querier.EpisodeDetail, error) {
 	return s.querier.FindCurrentEpisode(ctx)
 }
+

@@ -16,6 +16,7 @@ type Querier interface {
 	InsertVote(ctx context.Context, params *database.InsertVoteParams) error
 	FindVotes(ctx context.Context, params *database.FindVotesParams) ([]*querier.Vote, error)
 	UpdateVoteEpisodeSongID(ctx context.Context, voteID int, episodeSongID int) error
+	FindEpisodeDetailByID(ctx context.Context, episodeID int) (*querier.EpisodeDetail, error)
 	FindEpisodeDetailByEpisodeSongID(ctx context.Context, episodeSongID int) (*querier.EpisodeDetail, error)
 	FindEpisodeVotes(ctx context.Context, episodeID int) ([]*querier.EpisodeVote, error)
 }
@@ -85,6 +86,37 @@ func (s *VoteService) InsertVote(ctx context.Context, params *InsertVoteParams) 
 	}
 
 	return s.PublishVoteUpdate(ctx, episode.ID)
+}
+
+func (s *VoteService) HasVoted(ctx context.Context, episodeID int, ipAddress string) (bool, *int, error) {
+	episode, err := s.querier.FindEpisodeDetailByID(ctx, episodeID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil, errtrace.Wrap(NewErrEpisodeNotFound(fmt.Errorf("Episode not found")))
+		}
+
+		return false, nil, errtrace.Wrap(err)
+	}
+
+	episodeSongIDs := make([]int, len(episode.Songs))
+	for i, s := range episode.Songs {
+		episodeSongIDs[i] = s.EpisodeSongID
+	}
+
+	votes, err := s.querier.FindVotes(ctx, &database.FindVotesParams{
+		EpisodeSongIDs: episodeSongIDs,
+	})
+	if err != nil {
+		return false, nil, errtrace.Wrap(err)
+	}
+
+	for _, v := range votes {
+		if v.IPAddress == ipAddress {
+			return true, &v.EpisodeSongID, nil
+		}
+	}
+
+	return false, nil, nil
 }
 
 func (c *VoteService) GetVotesByEpisodeID(ctx context.Context, episodeID int) ([]*querier.EpisodeVote, error) {

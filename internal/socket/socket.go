@@ -3,7 +3,6 @@ package socket
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
