@@ -19,6 +19,19 @@ func toEpisodes(rows ...*EpisodeRow) []*querier.Episode {
 }
 
 func toEpisode(row *EpisodeRow) *querier.Episode {
+	releasedSong := &querier.EpisodeSong{
+		ID:                  row.SongID,
+		ReleasedAtEpisodeID: row.SongReleasedAtEpisodeID,
+		EpisodeSongID:       row.EpisodeSongID,
+		SongNameJP:          row.SongNameJP,
+		SongNameEN:          row.SongNameEN,
+		ArtistNameJP:        row.SongArtistNameJP,
+		ArtistNameEN:        row.SongArtistNameEN,
+		CoverImageURL:       row.SongCoverImageURL,
+		YoutubeURL:          row.SongYoutubeURL,
+		SpotifyURL:          row.SongSpotifyURL,
+	}
+
 	return &querier.Episode{
 		ID:           row.ID,
 		Episode:      row.Episode,
@@ -26,6 +39,7 @@ func toEpisode(row *EpisodeRow) *querier.Episode {
 		EpisodeDate:  row.EpisodeDate,
 		IsCurrent:    row.IsCurrent,
 		ThumbnailURL: row.ThumbnailURL,
+		ReleasedSong: releasedSong,
 	}
 }
 
@@ -167,15 +181,48 @@ func (d *DatabaseQuerier) ChangeCurrentEpisode(ctx context.Context, episodeNumbe
 }
 
 type EpisodeRow struct {
-	ID           int       `db:"episode_id"`
-	Episode      int       `db:"episode_number"`
-	EpisodeName  *string   `db:"episode_name"`
-	EpisodeDate  time.Time `db:"episode_date"`
-	IsCurrent    bool      `db:"episode_is_current"`
-	ThumbnailURL *string   `db:"episode_thumbnail_url"`
+	ID                      int       `db:"episode_id"`
+	Episode                 int       `db:"episode_number"`
+	EpisodeName             *string   `db:"episode_name"`
+	EpisodeDate             time.Time `db:"episode_date"`
+	IsCurrent               bool      `db:"episode_is_current"`
+	ThumbnailURL            *string   `db:"episode_thumbnail_url"`
+	SongID                  int       `db:"song_id"`
+	SongReleasedAtEpisodeID *int      `db:"song_released_at_episode_id"`
+	SongNameJP              string    `db:"song_name_jp"`
+	SongNameEN              string    `db:"song_name_en"`
+	SongArtistNameJP        string    `db:"song_artist_name_jp"`
+	SongArtistNameEN        string    `db:"song_artist_name_en"`
+	SongCoverImageURL       string    `db:"song_cover_image_url"`
+	SongYoutubeURL          *string   `db:"song_youtube_url"`
+	SongSpotifyURL          *string   `db:"song_spotify_url"`
+	EpisodeSongID           int       `db:"episode_song_id"`
 }
 
 func (d *DatabaseQuerier) FindAllEpisodes(ctx context.Context) ([]*querier.Episode, error) {
+	prevEpisodes, err := d.FindPreviousEpisodes(ctx)
+	if err != nil {
+		return nil, errtrace.Wrap(err)
+	}
+
+	currentEpisode, err := d.FindCurrentEpisode(ctx)
+	if err != nil {
+		return nil, errtrace.Wrap(err)
+	}
+
+	allEpisodes := append(prevEpisodes, &querier.Episode{
+		ID:           currentEpisode.ID,
+		Episode:      currentEpisode.Episode,
+		EpisodeName:  currentEpisode.EpisodeName,
+		EpisodeDate:  currentEpisode.EpisodeDate,
+		IsCurrent:    currentEpisode.IsCurrent,
+		ThumbnailURL: currentEpisode.ThumbnailURL,
+	})
+
+	return allEpisodes, nil
+}
+
+func (d *DatabaseQuerier) FindPreviousEpisodes(ctx context.Context) ([]*querier.Episode, error) {
 	queryStatement := `
   select
     "e"."id" as "episode_id",
@@ -183,10 +230,23 @@ func (d *DatabaseQuerier) FindAllEpisodes(ctx context.Context) ([]*querier.Episo
     "e"."episode_name" as "episode_name",
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
-		"e"."thumbnail_url" as "episode_thumbnail_url"
-  from "episode" "e"
-  order by "e"."id" asc
-  `
+		"e"."thumbnail_url" as "episode_thumbnail_url",
+    "s"."id" as "song_id",
+		"s"."released_at_episode" as "song_released_at_episode_id",
+    "s"."song_name_jp" as "song_name_jp",
+    "s"."song_name_en" as "song_name_en",
+    "s"."artist_name_jp" as "song_artist_name_jp",
+    "s"."artist_name_en" as "song_artist_name_en",
+    "s"."cover_image_url" as "song_cover_image_url",
+		"s"."youtube_url" as "song_youtube_url",
+		"s"."spotify_url" as "song_spotify_url",
+    "es"."id" as "episode_song_id"
+		from "episode" "e"
+		join "episode_song" "es" on "es"."episode_id" = "e"."id"
+		join "song" "s" on "s"."id" = "es" ."song_id" and "s"."released_at_episode" = "e"."id"
+		order by "e"."id" asc
+	`
+
 	var rows []*EpisodeRow
 	if err := d.db.SelectContext(ctx, &rows, queryStatement); err != nil {
 		return nil, errtrace.Wrap(err)

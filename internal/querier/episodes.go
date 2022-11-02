@@ -3,12 +3,13 @@ package querier
 import "time"
 
 type Episode struct {
-	ID           int       `json:"id"`
-	Episode      int       `json:"episode"`
-	EpisodeName  *string   `json:"episodeName"`
-	EpisodeDate  time.Time `json:"episodeDate"`
-	IsCurrent    bool      `json:"isCurrent"`
-	ThumbnailURL *string   `json:"thumbnailUrl"`
+	ID           int          `json:"id"`
+	Episode      int          `json:"episode"`
+	EpisodeName  *string      `json:"episodeName"`
+	EpisodeDate  time.Time    `json:"episodeDate"`
+	IsCurrent    bool         `json:"isCurrent"`
+	ThumbnailURL *string      `json:"thumbnailUrl"`
+	ReleasedSong *EpisodeSong `json:"releasedSong"`
 }
 
 type EpisodeDetail struct {
