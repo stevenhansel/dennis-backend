@@ -1,0 +1,18 @@
+[
+  {
+    "episode": 1,
+    "url": "https://raw.githubusercontent.com/stevenhansel/dennis-backend/main/data/thumbnails/episode-1.jpg"
+  },
+  {
+    "episode": 2,
+    "url": "https://raw.githubusercontent.com/stevenhansel/dennis-backend/main/data/thumbnails/episode-2.jpg"
+  },
+  {
+    "episode": 3,
+    "url": "https://raw.githubusercontent.com/stevenhansel/dennis-backend/main/data/thumbnails/episode-3.jpg"
+  },
+  {
+    "episode": 4,
+    "url": "https://raw.githubusercontent.com/stevenhansel/dennis-backend/main/data/thumbnails/episode-4.jpg"
+  }
+]

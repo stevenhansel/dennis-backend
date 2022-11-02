@@ -20,11 +20,12 @@ func toEpisodes(rows ...*EpisodeRow) []*querier.Episode {
 
 func toEpisode(row *EpisodeRow) *querier.Episode {
 	return &querier.Episode{
-		ID:          row.ID,
-		Episode:     row.Episode,
-		EpisodeName: row.EpisodeName,
-		EpisodeDate: row.EpisodeDate,
-		IsCurrent:   row.IsCurrent,
+		ID:           row.ID,
+		Episode:      row.Episode,
+		EpisodeName:  row.EpisodeName,
+		EpisodeDate:  row.EpisodeDate,
+		IsCurrent:    row.IsCurrent,
+		ThumbnailURL: row.ThumbnailURL,
 	}
 }
 
@@ -120,7 +121,7 @@ func (d *DatabaseQuerier) InitializeEpisodeSong(ctx context.Context, params []*I
   `
 
 	if _, err := d.db.NamedExecContext(ctx, statement, params); err != nil {
-		return err
+		return errtrace.Wrap(err)
 	}
 
 	return nil
@@ -166,11 +167,12 @@ func (d *DatabaseQuerier) ChangeCurrentEpisode(ctx context.Context, episodeNumbe
 }
 
 type EpisodeRow struct {
-	ID          int       `db:"episode_id"`
-	Episode     int       `db:"episode_number"`
-	EpisodeName *string   `db:"episode_name"`
-	EpisodeDate time.Time `db:"episode_date"`
-	IsCurrent   bool      `db:"episode_is_current"`
+	ID           int       `db:"episode_id"`
+	Episode      int       `db:"episode_number"`
+	EpisodeName  *string   `db:"episode_name"`
+	EpisodeDate  time.Time `db:"episode_date"`
+	IsCurrent    bool      `db:"episode_is_current"`
+	ThumbnailURL *string   `db:"episode_thumbnail_url"`
 }
 
 func (d *DatabaseQuerier) FindAllEpisodes(ctx context.Context) ([]*querier.Episode, error) {
@@ -180,13 +182,14 @@ func (d *DatabaseQuerier) FindAllEpisodes(ctx context.Context) ([]*querier.Episo
     "e"."episode" as "episode_number",
     "e"."episode_name" as "episode_name",
     "e"."episode_date" as "episode_date",
-    "e"."is_current" as "episode_is_current"
+    "e"."is_current" as "episode_is_current",
+		"e"."thumbnail_url" as "episode_thumbnail_url"
   from "episode" "e"
   order by "e"."id" asc
   `
 	var rows []*EpisodeRow
 	if err := d.db.SelectContext(ctx, &rows, queryStatement); err != nil {
-		return nil, err
+		return nil, errtrace.Wrap(err)
 	}
 
 	return toEpisodes(rows...), nil
@@ -243,11 +246,11 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
 
 	var row []*EpisodeDetailRow
 	if err := d.db.SelectContext(ctx, &row, queryStatement, episodeID); err != nil {
-		return nil, err
+		return nil, errtrace.Wrap(err)
 	}
 
 	if len(row) == 0 {
-		return nil, sql.ErrNoRows
+		return nil, errtrace.Wrap(sql.ErrNoRows)
 	}
 
 	return toEpisodeDetail(row), nil
@@ -280,7 +283,7 @@ func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.Epis
 
 	var row []*EpisodeDetailRow
 	if err := d.db.SelectContext(ctx, &row, queryStatement); err != nil {
-		return nil, err
+		return nil, errtrace.Wrap(err)
 	}
 
 	return toEpisodeDetail(row), nil
@@ -313,13 +316,40 @@ func (d *DatabaseQuerier) FindEpisodeDetailByEpisodeSongID(ctx context.Context, 
 
 	var row []*EpisodeDetailRow
 	if err := d.db.SelectContext(ctx, &row, queryStatement, episodeSongID); err != nil {
-		return nil, err
+		return nil, errtrace.Wrap(err)
 	}
 
 	if len(row) == 0 {
-		return nil, sql.ErrNoRows
+		return nil, errtrace.Wrap(sql.ErrNoRows)
 	}
 
 	return toEpisodeDetail(row), nil
+}
 
+type UpdateEpisodeParams struct {
+	ID           int       `db:"id"`
+	Episode      int       `db:"episode"`
+	EpisodeName  *string   `db:"episode_name"`
+	EpisodeDate  time.Time `db:"episode_date"`
+	IsCurrent    bool      `db:"is_current"`
+	ThumbnailURL *string   `db:"thumbnail_url"`
+}
+
+func (d *DatabaseQuerier) UpdateEpisode(ctx context.Context, params *UpdateEpisodeParams) error {
+	statement := `
+	update "episode"
+	set
+		episode = :episode,
+		episode_name = :episode_name,
+		episode_date = :episode_date,
+		is_current = :is_current,
+		thumbnail_url = :thumbnail_url
+	where id = :id
+	`
+
+	if _, err := d.db.NamedExecContext(ctx, statement, params); err != nil {
+		return errtrace.Wrap(err)
+	}
+
+	return nil
 }

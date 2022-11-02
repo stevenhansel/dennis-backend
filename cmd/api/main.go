@@ -69,6 +69,10 @@ func internalRun(environment config.Environment, log *zap.Logger) error {
 	}
 
 	episodeService := episodes.NewService(dbQuerier)
+	if err := episodeService.SynchronizeThumbnails(ctx); err != nil {
+		return errtrace.Wrap(err)
+	}
+
 	voteService := votes.NewService(dbQuerier, socketState)
 
 	episodeHttpController := episodes.NewEpisodeHttpController(responseutil, episodeService)
