@@ -11,12 +11,13 @@ type Episode struct {
 }
 
 type EpisodeDetail struct {
-	ID          int            `json:"id"`
-	Episode     int            `json:"episode"`
-	EpisodeName *string        `json:"episodeName"`
-	EpisodeDate time.Time      `json:"episodeDate"`
-	IsCurrent   bool           `json:"isCurrent"`
-	Songs       []*EpisodeSong `json:"songs"`
+	ID           int            `json:"id"`
+	Episode      int            `json:"episode"`
+	EpisodeName  *string        `json:"episodeName"`
+	EpisodeDate  time.Time      `json:"episodeDate"`
+	IsCurrent    bool           `json:"isCurrent"`
+	ThumbnailURL *string        `json:"thumbnailUrl"`
+	Songs        []*EpisodeSong `json:"songs"`
 }
 
 type EpisodeSong struct {

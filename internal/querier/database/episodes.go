@@ -55,12 +55,13 @@ func toEpisodeDetail(row []*EpisodeDetailRow) *querier.EpisodeDetail {
 	}
 
 	return &querier.EpisodeDetail{
-		ID:          row[0].EpisodeID,
-		Episode:     row[0].EpisodeNumber,
-		EpisodeName: row[0].EpisodeName,
-		EpisodeDate: row[0].EpisodeDate,
-		IsCurrent:   row[0].EpisodeIsCurrent,
-		Songs:       songs,
+		ID:           row[0].EpisodeID,
+		Episode:      row[0].EpisodeNumber,
+		EpisodeName:  row[0].EpisodeName,
+		EpisodeDate:  row[0].EpisodeDate,
+		IsCurrent:    row[0].EpisodeIsCurrent,
+		ThumbnailURL: row[0].EpisodeThumbnailURL,
+		Songs:        songs,
 	}
 }
 
@@ -197,6 +198,7 @@ type EpisodeDetailRow struct {
 	EpisodeName             *string   `db:"episode_name"`
 	EpisodeDate             time.Time `db:"episode_date"`
 	EpisodeIsCurrent        bool      `db:"episode_is_current"`
+	EpisodeThumbnailURL     *string   `db:"episode_thumbnail_url"`
 	SongID                  int       `db:"song_id"`
 	SongReleasedAtEpisodeID *int      `db:"song_released_at_episode_id"`
 	SongNameJP              string    `db:"song_name_jp"`
@@ -222,6 +224,7 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
     "e"."episode_name" as "episode_name",
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
+		"e"."thumbnail_url" as "episode_thumbnail_url",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
     "s"."song_name_jp" as "song_name_jp",
@@ -258,6 +261,7 @@ func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.Epis
     "e"."episode_name" as "episode_name",
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
+		"e"."thumbnail_url" as "episode_thumbnail_url",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
     "s"."song_name_jp" as "song_name_jp",
@@ -290,6 +294,7 @@ func (d *DatabaseQuerier) FindEpisodeDetailByEpisodeSongID(ctx context.Context, 
     "e"."episode_name" as "episode_name",
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
+		"e"."thumbnail_url" as "episode_thumbnail_url",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
     "s"."song_name_jp" as "song_name_jp",
