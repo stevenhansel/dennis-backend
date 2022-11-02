@@ -41,13 +41,16 @@ func toEpisodeDetail(row []*EpisodeDetailRow) *querier.EpisodeDetail {
 	songs := make([]*querier.EpisodeSong, len(row))
 	for i, s := range row {
 		songs[i] = &querier.EpisodeSong{
-			ID:            s.SongID,
-			EpisodeSongID: s.EpisodeSongID,
-			SongNameJP:    s.SongNameJP,
-			SongNameEN:    s.SongNameEN,
-			ArtistNameJP:  s.SongArtistNameJP,
-			ArtistNameEN:  s.SongArtistNameEN,
-			CoverImageURL: s.SongCoverImageURL,
+			ID:                  s.SongID,
+			ReleasedAtEpisodeID: s.SongReleasedAtEpisodeID,
+			EpisodeSongID:       s.EpisodeSongID,
+			SongNameJP:          s.SongNameJP,
+			SongNameEN:          s.SongNameEN,
+			ArtistNameJP:        s.SongArtistNameJP,
+			ArtistNameEN:        s.SongArtistNameEN,
+			CoverImageURL:       s.SongCoverImageURL,
+			YoutubeURL:          s.SongYoutubeURL,
+			SpotifyURL:          s.SongSpotifyURL,
 		}
 	}
 
