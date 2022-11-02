@@ -301,7 +301,7 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
   join "song" "s" on "s"."id" = "es" ."song_id"
-  where "e"."id" = $1
+  where "e"."id" = $1 and ("s"."released_at_episode" is null or "s"."released_at_episode" >= "e"."id")
   `
 
 	var row []*EpisodeDetailRow
@@ -338,7 +338,7 @@ func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.Epis
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
   join "song" "s" on "s"."id" = "es" ."song_id"
-  where "e"."is_current" = true
+  where "e"."is_current" = true and ("s"."released_at_episode" is null or "s"."released_at_episode" >= "e"."id")
   `
 
 	var row []*EpisodeDetailRow
@@ -371,7 +371,7 @@ func (d *DatabaseQuerier) FindEpisodeDetailByEpisodeSongID(ctx context.Context, 
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
   join "song" "s" on "s"."id" = "es" ."song_id"
-  where "e"."id" = (select "episode_id" from "episode_song" where "id" = $1)
+  where "e"."id" = (select "episode_id" from "episode_song" where "id" = $1) and ("s"."released_at_episode" is null or "s"."released_at_episode" >= "e"."id")
   `
 
 	var row []*EpisodeDetailRow
