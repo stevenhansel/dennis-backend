@@ -180,14 +180,14 @@ type EpisodeVoteRow struct {
 
 func (d *DatabaseQuerier) FindEpisodeVotes(ctx context.Context, episodeID int) ([]*querier.EpisodeVote, error) {
 	statement := `
-  select
-    "es"."id" as "episode_song_id",
-    (select count(*) from "vote" where "episode_song_id" = "es"."id") as "num_of_votes"
-  from "episode_song" "es"
-  join "episode" "e" on "e"."id" = "es"."episode_id"
-  join "song" "s" on "s"."id" = "es" ."song_id"
-  where "e"."id" = $1
-  order by "num_of_votes" desc
+	select
+			"es"."id" as "episode_song_id",
+			(select count(*) from "vote" where "episode_song_id" = "es"."id") as "num_of_votes"
+	from "episode_song" "es"
+	join "episode" "e" on "e"."id" = "es"."episode_id"
+	join "song" "s" on "s"."id" = "es" ."song_id"
+	where "e"."id" = $1 and ("s"."released_at_episode" is null or "s"."released_at_episode" >= "e"."id")
+	order by "num_of_votes" desc
   `
 
 	var rows []*EpisodeVoteRow
