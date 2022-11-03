@@ -3,25 +3,27 @@ package querier
 import "time"
 
 type Episode struct {
-	ID           int          `json:"id"`
-	Episode      int          `json:"episode"`
-	EpisodeName  *string      `json:"episodeName"`
-	EpisodeDate  time.Time    `json:"episodeDate"`
-	IsCurrent    bool         `json:"isCurrent"`
-	IsVotingOpen bool         `json:"isVotingOpen"`
-	ThumbnailURL *string      `json:"thumbnailUrl"`
-	ReleasedSong *EpisodeSong `json:"releasedSong"`
+	ID               int          `json:"id"`
+	Episode          int          `json:"episode"`
+	EpisodeName      *string      `json:"episodeName"`
+	EpisodeDate      time.Time    `json:"episodeDate"`
+	IsCurrent        bool         `json:"isCurrent"`
+	IsVotingOpen     bool         `json:"isVotingOpen"`
+	ThumbnailURL     *string      `json:"thumbnailUrl"`
+	NumOfVotesCasted int          `json:"numOfVotesCasted"`
+	ReleasedSong     *EpisodeSong `json:"releasedSong"`
 }
 
 type EpisodeDetail struct {
-	ID           int            `json:"id"`
-	Episode      int            `json:"episode"`
-	EpisodeName  *string        `json:"episodeName"`
-	EpisodeDate  time.Time      `json:"episodeDate"`
-	IsCurrent    bool           `json:"isCurrent"`
-	IsVotingOpen bool           `json:"isVotingOpen"`
-	ThumbnailURL *string        `json:"thumbnailUrl"`
-	Songs        []*EpisodeSong `json:"songs"`
+	ID               int            `json:"id"`
+	Episode          int            `json:"episode"`
+	EpisodeName      *string        `json:"episodeName"`
+	EpisodeDate      time.Time      `json:"episodeDate"`
+	IsCurrent        bool           `json:"isCurrent"`
+	IsVotingOpen     bool           `json:"isVotingOpen"`
+	ThumbnailURL     *string        `json:"thumbnailUrl"`
+	NumOfVotesCasted int            `json:"numOfVotesCasted"`
+	Songs            []*EpisodeSong `json:"songs"`
 }
 
 type EpisodeSong struct {

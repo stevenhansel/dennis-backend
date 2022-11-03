@@ -33,14 +33,15 @@ func toEpisode(row *EpisodeRow) *querier.Episode {
 	}
 
 	return &querier.Episode{
-		ID:           row.ID,
-		Episode:      row.Episode,
-		EpisodeName:  row.EpisodeName,
-		EpisodeDate:  row.EpisodeDate,
-		IsCurrent:    row.IsCurrent,
-		IsVotingOpen: row.IsVotingOpen,
-		ThumbnailURL: row.ThumbnailURL,
-		ReleasedSong: releasedSong,
+		ID:               row.ID,
+		Episode:          row.Episode,
+		EpisodeName:      row.EpisodeName,
+		EpisodeDate:      row.EpisodeDate,
+		IsCurrent:        row.IsCurrent,
+		IsVotingOpen:     row.IsVotingOpen,
+		ThumbnailURL:     row.ThumbnailURL,
+		NumOfVotesCasted: row.NumOfVotesCasted,
+		ReleasedSong:     releasedSong,
 	}
 }
 
@@ -71,13 +72,14 @@ func toEpisodeDetail(row []*EpisodeDetailRow) *querier.EpisodeDetail {
 	}
 
 	return &querier.EpisodeDetail{
-		ID:           row[0].EpisodeID,
-		Episode:      row[0].EpisodeNumber,
-		EpisodeName:  row[0].EpisodeName,
-		EpisodeDate:  row[0].EpisodeDate,
-		IsCurrent:    row[0].EpisodeIsCurrent,
-		ThumbnailURL: row[0].EpisodeThumbnailURL,
-		Songs:        songs,
+		ID:               row[0].EpisodeID,
+		Episode:          row[0].EpisodeNumber,
+		EpisodeName:      row[0].EpisodeName,
+		EpisodeDate:      row[0].EpisodeDate,
+		IsCurrent:        row[0].EpisodeIsCurrent,
+		ThumbnailURL:     row[0].EpisodeThumbnailURL,
+		NumOfVotesCasted: row[0].NumOfVotesCasted,
+		Songs:            songs,
 	}
 }
 
@@ -189,6 +191,7 @@ type EpisodeRow struct {
 	IsCurrent               bool      `db:"episode_is_current"`
 	IsVotingOpen            bool      `db:"episode_is_voting_open"`
 	ThumbnailURL            *string   `db:"episode_thumbnail_url"`
+	NumOfVotesCasted        int       `db:"num_of_votes_casted"`
 	SongID                  int       `db:"song_id"`
 	SongReleasedAtEpisodeID *int      `db:"song_released_at_episode_id"`
 	SongNameJP              string    `db:"song_name_jp"`
@@ -213,12 +216,14 @@ func (d *DatabaseQuerier) FindAllEpisodes(ctx context.Context) ([]*querier.Episo
 	}
 
 	allEpisodes := append(prevEpisodes, &querier.Episode{
-		ID:           currentEpisode.ID,
-		Episode:      currentEpisode.Episode,
-		EpisodeName:  currentEpisode.EpisodeName,
-		EpisodeDate:  currentEpisode.EpisodeDate,
-		IsCurrent:    currentEpisode.IsCurrent,
-		ThumbnailURL: currentEpisode.ThumbnailURL,
+		ID:               currentEpisode.ID,
+		Episode:          currentEpisode.Episode,
+		EpisodeName:      currentEpisode.EpisodeName,
+		EpisodeDate:      currentEpisode.EpisodeDate,
+		IsCurrent:        currentEpisode.IsCurrent,
+		IsVotingOpen:     currentEpisode.IsVotingOpen,
+		ThumbnailURL:     currentEpisode.ThumbnailURL,
+		NumOfVotesCasted: currentEpisode.NumOfVotesCasted,
 	})
 
 	return allEpisodes, nil
@@ -234,6 +239,7 @@ func (d *DatabaseQuerier) FindPreviousEpisodes(ctx context.Context) ([]*querier.
     "e"."is_current" as "episode_is_current",
     "e"."is_voting_open" as "episode_is_voting_open",
 		"e"."thumbnail_url" as "episode_thumbnail_url",
+		"c"."num_of_votes" as "num_of_votes_casted",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
     "s"."song_name_jp" as "song_name_jp",
@@ -247,6 +253,15 @@ func (d *DatabaseQuerier) FindPreviousEpisodes(ctx context.Context) ([]*querier.
 		from "episode" "e"
 		join "episode_song" "es" on "es"."episode_id" = "e"."id"
 		join "song" "s" on "s"."id" = "es" ."song_id" and "s"."released_at_episode" = "e"."id"
+    left join lateral (
+        select count(*) as "num_of_votes"
+        from "vote"
+        join "episode_song" on "episode_song"."id" = "vote"."episode_song_id"
+        join "song" on "song"."id" = "episode_song"."song_id"
+        where 
+					"episode_song"."episode_id" = "e"."id" and 
+					("song"."released_at_episode" is null or "song"."released_at_episode" >= "e"."id")
+    ) "c" on true
 		order by "e"."id" asc
 	`
 
@@ -266,6 +281,7 @@ type EpisodeDetailRow struct {
 	EpisodeIsCurrent        bool      `db:"episode_is_current"`
 	EpisodeIsVotingOpen     bool      `db:"episode_is_voting_open"`
 	EpisodeThumbnailURL     *string   `db:"episode_thumbnail_url"`
+	NumOfVotesCasted        int       `db:"num_of_votes_casted"`
 	SongID                  int       `db:"song_id"`
 	SongReleasedAtEpisodeID *int      `db:"song_released_at_episode_id"`
 	SongNameJP              string    `db:"song_name_jp"`
@@ -293,6 +309,7 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
     "e"."is_current" as "episode_is_current",
 		"e"."is_voting_open" as "episode_is_voting_open",
 		"e"."thumbnail_url" as "episode_thumbnail_url",
+		"c"."num_of_votes" as "num_of_votes_casted",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
     "s"."song_name_jp" as "song_name_jp",
@@ -306,6 +323,15 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
   join "song" "s" on "s"."id" = "es" ."song_id"
+	left join lateral (
+			select count(*) as "num_of_votes"
+			from "vote"
+			join "episode_song" on "episode_song"."id" = "vote"."episode_song_id"
+			join "song" on "song"."id" = "episode_song"."song_id"
+			where 
+				"episode_song"."episode_id" = "e"."id" and 
+				("song"."released_at_episode" is null or "song"."released_at_episode" >= "e"."id")
+	) "c" on true
   where "e"."id" = $1 and ("s"."released_at_episode" is null or "s"."released_at_episode" >= "e"."id")
   `
 
@@ -331,6 +357,7 @@ func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.Epis
     "e"."is_current" as "episode_is_current",
 		"e"."is_voting_open" as "episode_is_voting_open",
 		"e"."thumbnail_url" as "episode_thumbnail_url",
+		"c"."num_of_votes" as "num_of_votes_casted",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
     "s"."song_name_jp" as "song_name_jp",
@@ -344,6 +371,15 @@ func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.Epis
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
   join "song" "s" on "s"."id" = "es" ."song_id"
+	left join lateral (
+			select count(*) as "num_of_votes"
+			from "vote"
+			join "episode_song" on "episode_song"."id" = "vote"."episode_song_id"
+			join "song" on "song"."id" = "episode_song"."song_id"
+			where 
+				"episode_song"."episode_id" = "e"."id" and 
+				("song"."released_at_episode" is null or "song"."released_at_episode" >= "e"."id")
+	) "c" on true
   where "e"."is_current" = true and ("s"."released_at_episode" is null or "s"."released_at_episode" >= "e"."id")
   `
 
@@ -365,6 +401,7 @@ func (d *DatabaseQuerier) FindEpisodeDetailByEpisodeSongID(ctx context.Context, 
     "e"."is_current" as "episode_is_current",
 		"e"."is_voting_open" as "episode_is_voting_open",
 		"e"."thumbnail_url" as "episode_thumbnail_url",
+		"c"."num_of_votes" as "num_of_votes_casted",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
     "s"."song_name_jp" as "song_name_jp",
@@ -378,6 +415,15 @@ func (d *DatabaseQuerier) FindEpisodeDetailByEpisodeSongID(ctx context.Context, 
   from "episode_song" "es"
   join "episode" "e" on "e"."id" = "es"."episode_id"
   join "song" "s" on "s"."id" = "es" ."song_id"
+	left join lateral (
+			select count(*) as "num_of_votes"
+			from "vote"
+			join "episode_song" on "episode_song"."id" = "vote"."episode_song_id"
+			join "song" on "song"."id" = "episode_song"."song_id"
+			where 
+				"episode_song"."episode_id" = "e"."id" and 
+				("song"."released_at_episode" is null or "song"."released_at_episode" >= "e"."id")
+	) "c" on true
   where "e"."id" = (select "episode_id" from "episode_song" where "id" = $1) and ("s"."released_at_episode" is null or "s"."released_at_episode" >= "e"."id")
   `
 
