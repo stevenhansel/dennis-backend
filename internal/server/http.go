@@ -3,6 +3,8 @@ package server
 import "github.com/go-chi/chi/v5"
 
 func (s Server) registerHttpHandler(r chi.Router) {
+	socketState := s.container.SocketState
+
 	episodeController := s.container.EpisodeHttpController
 	voteController := s.container.VoteHttpController
 
@@ -15,4 +17,7 @@ func (s Server) registerHttpHandler(r chi.Router) {
 
 	// Votes
 	r.Post("/v1/votes", voteController.InsertVote)
+
+	// Subscribers
+	r.Get("/v1/subscribers/{episodeId}", socketState.GetNumOfSubscribers)
 }

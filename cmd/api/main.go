@@ -61,6 +61,7 @@ func internalRun(environment config.Environment, log *zap.Logger) error {
 	socketState := socket.NewSocketState(
 		rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
 		512,
+		responseutil,
 	)
 
 	songService := songs.NewService(dbQuerier)

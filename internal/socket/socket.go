@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/stevenhansel/csm-ending-prediction-be/internal/server/responseutil"
 	"golang.org/x/time/rate"
 	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
@@ -17,7 +18,8 @@ import (
 type Topic string
 
 const (
-	NewVoteTopic Topic = "new_vote"
+	NewVoteTopic  Topic = "new_vote"
+	NewSubscriber Topic = "new_subscriber"
 )
 
 type Payload struct {
@@ -29,6 +31,7 @@ type Payload struct {
 type SocketState struct {
 	publishLimiter          *rate.Limiter
 	subscriberMessageBuffer int
+	responseutil            *responseutil.Responseutil
 
 	subscribers      map[int]map[*Subscriber]struct{}
 	subscribersMutex sync.Mutex
@@ -37,10 +40,12 @@ type SocketState struct {
 func NewSocketState(
 	publishLimiter *rate.Limiter,
 	subscriberMessageBuffer int,
+	responseutil *responseutil.Responseutil,
 ) *SocketState {
 	return &SocketState{
 		publishLimiter:          publishLimiter,
 		subscriberMessageBuffer: subscriberMessageBuffer,
+		responseutil:            responseutil,
 		subscribers:             make(map[int]map[*Subscriber]struct{}),
 	}
 }
@@ -48,6 +53,30 @@ func NewSocketState(
 type Subscriber struct {
 	messages  chan Payload
 	closeSlow func()
+}
+
+type NumOfSubscribersResponseBody struct {
+	NumOfSubscribers int `json:"numOfSubscribers"`
+}
+
+func (s *SocketState) GetNumOfSubscribers(w http.ResponseWriter, r *http.Request) {
+	res := s.responseutil.CreateResponse(w)
+
+	sEpisodeID := chi.URLParam(r, "episodeId")
+	episodeID, err := strconv.Atoi(sEpisodeID)
+	if err != nil {
+		res.Error4xx(http.StatusBadRequest, "Failed to parse request")
+		return
+	}
+
+	var numOfSubscribers int
+	if s, ok := s.subscribers[episodeID]; ok {
+		numOfSubscribers = len(s)
+	}
+
+	res.JSON(http.StatusOK, &NumOfSubscribersResponseBody{
+		NumOfSubscribers: numOfSubscribers,
+	})
 }
 
 func (s *SocketState) SubscribeHandler(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +117,7 @@ func (s *SocketState) Subscribe(ctx context.Context, c *websocket.Conn, episodeI
 		},
 	}
 
-	s.AddSubscriber(episodeID, subscriber)
+	s.AddSubscriber(ctx, c, episodeID, subscriber)
 	defer s.DeleteSubscriber(episodeID, subscriber)
 
 	for {
@@ -121,7 +150,7 @@ func (s *SocketState) Publish(payload Payload) {
 	}
 }
 
-func (s *SocketState) AddSubscriber(episodeID int, subscriber *Subscriber) {
+func (s *SocketState) AddSubscriber(ctx context.Context, c *websocket.Conn, episodeID int, subscriber *Subscriber) {
 	s.subscribersMutex.Lock()
 	defer s.subscribersMutex.Unlock()
 
@@ -129,6 +158,24 @@ func (s *SocketState) AddSubscriber(episodeID int, subscriber *Subscriber) {
 		s.subscribers[episodeID] = map[*Subscriber]struct{}{}
 	}
 	s.subscribers[episodeID][subscriber] = struct{}{}
+
+	payload := Payload{
+		Topic:     NewSubscriber,
+		EpisodeID: episodeID,
+		Message: NumOfSubscribersResponseBody{
+			NumOfSubscribers: len(s.subscribers[episodeID]),
+		},
+	}
+
+	for sub := range s.subscribers[episodeID] {
+		if sub != subscriber {
+			select {
+			case sub.messages <- payload:
+			default:
+				go sub.closeSlow()
+			}
+		}
+	}
 }
 
 func (s *SocketState) DeleteSubscriber(episodeID int, subscriber *Subscriber) {
