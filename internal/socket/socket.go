@@ -32,6 +32,7 @@ type SocketState struct {
 	publishLimiter          *rate.Limiter
 	subscriberMessageBuffer int
 	responseutil            *responseutil.Responseutil
+	corsOrigins             []string
 
 	subscribers      map[int]map[*Subscriber]struct{}
 	subscribersMutex sync.Mutex
@@ -86,8 +87,12 @@ func (s *SocketState) SubscribeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	origins := []string{"*"}
+	if len(s.corsOrigins) > 0 {
+		origins = s.corsOrigins
+	}
 	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		OriginPatterns: []string{"*"},
+		OriginPatterns: origins,
 	})
 	if err != nil {
 		return
