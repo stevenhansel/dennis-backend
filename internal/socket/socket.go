@@ -117,7 +117,7 @@ func (s *SocketState) Subscribe(ctx context.Context, c *websocket.Conn, episodeI
 		},
 	}
 
-	s.AddSubscriber(ctx, c, episodeID, subscriber)
+	s.AddSubscriber(episodeID, subscriber)
 	defer s.DeleteSubscriber(episodeID, subscriber)
 
 	for {
@@ -150,15 +150,7 @@ func (s *SocketState) Publish(payload Payload) {
 	}
 }
 
-func (s *SocketState) AddSubscriber(ctx context.Context, c *websocket.Conn, episodeID int, subscriber *Subscriber) {
-	s.subscribersMutex.Lock()
-	defer s.subscribersMutex.Unlock()
-
-	if _, ok := s.subscribers[episodeID]; !ok {
-		s.subscribers[episodeID] = map[*Subscriber]struct{}{}
-	}
-	s.subscribers[episodeID][subscriber] = struct{}{}
-
+func (s *SocketState) PublishSubscribersCount(episodeID int, subscriber **Subscriber) {
 	payload := Payload{
 		Topic:     NewSubscriber,
 		EpisodeID: episodeID,
@@ -168,7 +160,7 @@ func (s *SocketState) AddSubscriber(ctx context.Context, c *websocket.Conn, epis
 	}
 
 	for sub := range s.subscribers[episodeID] {
-		if sub != subscriber {
+		if sub != *subscriber {
 			select {
 			case sub.messages <- payload:
 			default:
@@ -176,6 +168,18 @@ func (s *SocketState) AddSubscriber(ctx context.Context, c *websocket.Conn, epis
 			}
 		}
 	}
+}
+
+func (s *SocketState) AddSubscriber(episodeID int, subscriber *Subscriber) {
+	s.subscribersMutex.Lock()
+	defer s.subscribersMutex.Unlock()
+
+	if _, ok := s.subscribers[episodeID]; !ok {
+		s.subscribers[episodeID] = map[*Subscriber]struct{}{}
+	}
+	s.subscribers[episodeID][subscriber] = struct{}{}
+
+	s.PublishSubscribersCount(episodeID, &subscriber)
 }
 
 func (s *SocketState) DeleteSubscriber(episodeID int, subscriber *Subscriber) {
@@ -189,6 +193,8 @@ func (s *SocketState) DeleteSubscriber(episodeID int, subscriber *Subscriber) {
 			delete(s.subscribers, episodeID)
 		}
 	}
+
+	s.PublishSubscribersCount(episodeID, &subscriber)
 }
 
 func writeTimeout(ctx context.Context, timeout time.Duration, c *websocket.Conn, message interface{}) error {
