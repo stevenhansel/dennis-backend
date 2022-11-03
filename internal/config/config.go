@@ -96,6 +96,10 @@ func New(environment Environment) (*Configuration, error) {
 		switch t.(type) {
 		case []string:
 			slice := strings.Split(strings.Trim(value, " "), ",")
+			for j := 0; j < len(slice); j++ {
+				slice[j] = strings.Trim(slice[j], " ")
+			}
+
 			cfgVal.Field(i).Set(reflect.ValueOf(slice))
 			break
 		case string:
