@@ -32,8 +32,14 @@ func New(container *container.Container) *Server {
 
 func (s *Server) registerHandler() chi.Router {
 	r := chi.NewRouter()
+	c := s.container
 
-	r.Use(middleware.Cors(s.container.Environment))
+	r.Use(
+		middleware.Cors(
+			c.Environment, c.Config.CORS_ORIGINS,
+		),
+	)
+
 	s.registerHttpHandler(r)
 	s.registerWsHandler(r)
 

@@ -7,13 +7,10 @@ import (
 	"github.com/stevenhansel/csm-ending-prediction-be/internal/config"
 )
 
-func Cors(environment config.Environment) func(http.Handler) http.Handler {
-	origins := []string{"*"}
-	// if environment == config.PRODUCTION {
-	// 	origins = append(origins, "https://dennis.dog")
-	// } else {
-	// 	origins = append(origins, "*")
-	// }
+func Cors(environment config.Environment, origins []string) func(http.Handler) http.Handler {
+	if len(origins) == 0 {
+		origins = []string{"*"}
+	}
 
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   origins,
