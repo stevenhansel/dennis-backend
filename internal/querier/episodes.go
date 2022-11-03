@@ -8,6 +8,7 @@ type Episode struct {
 	EpisodeName  *string      `json:"episodeName"`
 	EpisodeDate  time.Time    `json:"episodeDate"`
 	IsCurrent    bool         `json:"isCurrent"`
+	IsVotingOpen bool         `json:"isVotingOpen"`
 	ThumbnailURL *string      `json:"thumbnailUrl"`
 	ReleasedSong *EpisodeSong `json:"releasedSong"`
 }
@@ -18,6 +19,7 @@ type EpisodeDetail struct {
 	EpisodeName  *string        `json:"episodeName"`
 	EpisodeDate  time.Time      `json:"episodeDate"`
 	IsCurrent    bool           `json:"isCurrent"`
+	IsVotingOpen bool           `json:"isVotingOpen"`
 	ThumbnailURL *string        `json:"thumbnailUrl"`
 	Songs        []*EpisodeSong `json:"songs"`
 }

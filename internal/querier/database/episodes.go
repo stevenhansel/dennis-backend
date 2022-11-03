@@ -38,6 +38,7 @@ func toEpisode(row *EpisodeRow) *querier.Episode {
 		EpisodeName:  row.EpisodeName,
 		EpisodeDate:  row.EpisodeDate,
 		IsCurrent:    row.IsCurrent,
+		IsVotingOpen: row.IsVotingOpen,
 		ThumbnailURL: row.ThumbnailURL,
 		ReleasedSong: releasedSong,
 	}
@@ -186,6 +187,7 @@ type EpisodeRow struct {
 	EpisodeName             *string   `db:"episode_name"`
 	EpisodeDate             time.Time `db:"episode_date"`
 	IsCurrent               bool      `db:"episode_is_current"`
+	IsVotingOpen            bool      `db:"episode_is_voting_open"`
 	ThumbnailURL            *string   `db:"episode_thumbnail_url"`
 	SongID                  int       `db:"song_id"`
 	SongReleasedAtEpisodeID *int      `db:"song_released_at_episode_id"`
@@ -230,6 +232,7 @@ func (d *DatabaseQuerier) FindPreviousEpisodes(ctx context.Context) ([]*querier.
     "e"."episode_name" as "episode_name",
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
+    "e"."is_voting_open" as "episode_is_voting_open",
 		"e"."thumbnail_url" as "episode_thumbnail_url",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
@@ -261,6 +264,7 @@ type EpisodeDetailRow struct {
 	EpisodeName             *string   `db:"episode_name"`
 	EpisodeDate             time.Time `db:"episode_date"`
 	EpisodeIsCurrent        bool      `db:"episode_is_current"`
+	EpisodeIsVotingOpen     bool      `db:"episode_is_voting_open"`
 	EpisodeThumbnailURL     *string   `db:"episode_thumbnail_url"`
 	SongID                  int       `db:"song_id"`
 	SongReleasedAtEpisodeID *int      `db:"song_released_at_episode_id"`
@@ -287,6 +291,7 @@ func (d *DatabaseQuerier) FindEpisodeDetailByID(ctx context.Context, episodeID i
     "e"."episode_name" as "episode_name",
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
+		"e"."is_voting_open" as "episode_is_voting_open",
 		"e"."thumbnail_url" as "episode_thumbnail_url",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
@@ -324,6 +329,7 @@ func (d *DatabaseQuerier) FindCurrentEpisode(ctx context.Context) (*querier.Epis
     "e"."episode_name" as "episode_name",
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
+		"e"."is_voting_open" as "episode_is_voting_open",
 		"e"."thumbnail_url" as "episode_thumbnail_url",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
@@ -357,6 +363,7 @@ func (d *DatabaseQuerier) FindEpisodeDetailByEpisodeSongID(ctx context.Context, 
     "e"."episode_name" as "episode_name",
     "e"."episode_date" as "episode_date",
     "e"."is_current" as "episode_is_current",
+		"e"."is_voting_open" as "episode_is_voting_open",
 		"e"."thumbnail_url" as "episode_thumbnail_url",
     "s"."id" as "song_id",
 		"s"."released_at_episode" as "song_released_at_episode_id",
