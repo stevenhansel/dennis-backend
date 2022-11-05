@@ -123,16 +123,29 @@ func (c *VoteService) GetVotesByEpisodeID(ctx context.Context, episodeID int) ([
 	return c.querier.FindEpisodeVotes(ctx, episodeID)
 }
 
+type VoteUpdateMessage struct {
+	TotalVotes int                    `json:"totalVotes"`
+	Votes      []*querier.EpisodeVote `json:"votes"`
+}
+
 func (c *VoteService) PublishVoteUpdate(ctx context.Context, episodeID int) error {
 	votes, err := c.GetVotesByEpisodeID(ctx, episodeID)
 	if err != nil {
 		return errtrace.Wrap(err)
 	}
 
+	var totalVotes int
+	for _, v := range votes {
+		totalVotes += v.NumOfVotes
+	}
+
 	c.socket.Publish(socket.Payload{
 		Topic:     socket.NewVoteTopic,
 		EpisodeID: episodeID,
-		Message:   votes,
+		Message: VoteUpdateMessage{
+			TotalVotes: totalVotes,
+			Votes:      votes,
+		},
 	})
 
 	return nil
