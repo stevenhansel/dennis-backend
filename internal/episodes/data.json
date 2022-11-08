@@ -14,5 +14,9 @@
   {
     "episode": 4,
     "url": "https://raw.githubusercontent.com/stevenhansel/dennis-backend/main/data/thumbnails/episode-4.jpg"
+  },
+  {
+    "episode": 5,
+    "url": "https://raw.githubusercontent.com/stevenhansel/dennis-backend/main/data/thumbnails/episode-5.jpg"
   }
 ]
